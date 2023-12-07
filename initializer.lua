@@ -13,12 +13,13 @@ local defaultSettings = T{
         CountDown = true,
         ShowTenths = true,
         SortType = 'Duration',
-        DefaultColor = 0xFF00FF00,
         AnimateCompletion = true,
         CompletionDuration = 3,
+        UseTooltips = true;
+        DefaultColor = 0xFF00FF00,
         ColorThresholds = {
-            { Duration=15, Color=0xFFFF0000 },
-            { Duration=30, Color=0xFF00FFFF },
+            { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
+            { Mode='Seconds', Limit=30, Color=0xFF999900 },
         },
     },
     
@@ -31,12 +32,13 @@ local defaultSettings = T{
         CountDown = true,
         ShowTenths = true,
         SortType = 'Duration',
-        DefaultColor = 0xFF00FF00,
         AnimateCompletion = true,
         CompletionDuration = 3,
+        UseTooltips = true;
+        DefaultColor = 0xFF00FF00,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            { Mode='Percent', Limit=30, Color=0xFF00FFFF },
+            { Mode='Seconds', Limit=30, Color=0xFF999900 },
         },
     },
     
@@ -46,38 +48,40 @@ local defaultSettings = T{
         Enabled = true,
         Renderer = 'default',
         ShiftCancel = true,
-        CountDown = true,
+        CountDown = false,
         ShowTenths = true,
         SortType = 'Duration',
-        DefaultColor = 0xFFFF0000,
         AnimateCompletion = true,
         CompletionDuration = 3,
+        UseTooltips = true;
+        DefaultColor = 0xFFFF0000,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            { Mode='Percent', Limit=30, Color=0xFF00FFFF },
+            { Mode='Seconds', Limit=30, Color=0xFF999900 },
         },
     },
     
     Custom = {
-        Position = { X=0, Y=0 },
+        Position = { X=80, Y=200 },
         Scale = 1,
         Enabled = true,
         Renderer = 'default',
         ShiftCancel = true,
-        CountDown = true,
+        CountDown = false,
         ShowTenths = true,
         SortType = 'Duration',
-        DefaultColor = 0xFFFF0000,
         AnimateCompletion = true,
         CompletionDuration = 3,
-        UseTooltips = true,
+        UseTooltips = true;
+        DefaultColor = 0xFFFF0000,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            { Mode='Percent', Limit=30, Color=0xFF00FFFF },
+            { Mode='Seconds', Limit=30, Color=0xFF999900 },
         },
     },
 };
-gSettings = settings.load(defaultSettings);
+gSettings = defaultSettings;
+--gSettings = settings.load(defaultSettings);
 
 
 --Initialize panels..
@@ -97,4 +101,4 @@ local function UpdateSettings(newSettings)
         entry:UpdateSettings(panelSettings, true);
     end
 end
-settings.register('settings', 'settings_update', UpdateSettings);
+--settings.register('settings', 'settings_update', UpdateSettings);

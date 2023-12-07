@@ -31,7 +31,7 @@ function TimerGroup:HandleMouse(e)
         if (self.ShiftCancel) and (IsShiftPressed()) then
             local entry = HitTest(self.Mouse.X, self.Mouse.Y, self.Hitboxes);
             if entry then
-                entry.Local.Delete = true;
+                entry.Data.Local.Delete = true;
             end
         end
     end
@@ -75,7 +75,7 @@ function TimerGroup:Render(sprite, data)
                 renderData.Percent = 0;
             else
                 renderData.Percent = renderData.Duration / (entry.Expiration - entry.Creation);
-                if (self.Settings.CountUp) then
+                if (not self.Settings.CountDown) then
                     renderData.Percent = (1 - renderData.Percent);
                 end
             end
@@ -117,7 +117,7 @@ function TimerGroup:Render(sprite, data)
     self.Hitboxes = T{};
     for index,entry in ipairs(sortable) do
         local hitbox = self.TimerRenderer:DrawTimer(sprite, position, entry);
-        self.Hitboxes:append({ Hitbox=hitbox, Local=entry.Local, Tooltip=entry.Tooltip });
+        self.Hitboxes:append({ Hitbox=hitbox, Data=entry });
         if (index == self.Settings.MaxBars) then
             break;
         end
@@ -134,8 +134,8 @@ end
 
 function TimerGroup:RenderMouseOver(sprite)
     local hit = HitTest(self.Mouse.X, self.Mouse.Y, self.Hitboxes);
-    if hit and (hit.Tooltip) then
-        self.TimerRenderer:DrawTooltip(sprite, { X=self.Mouse.X, Y=self.Mouse.Y }, hit.Tooltip);
+    if hit then
+        self.TimerRenderer:DrawTooltip(sprite, { X=self.Mouse.X, Y=self.Mouse.Y }, hit.Data);
     end
 end
 
