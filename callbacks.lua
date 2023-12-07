@@ -21,6 +21,7 @@ ashita.events.register('d3d_present', 'd3d_present_cb', function ()
     gPanels.Debuffs:Render(sprite, debuffTracker:Tick());
     gPanels.Recasts:Render(sprite, recastTracker:Tick());
     gPanels.Custom:Render(sprite, customTimers);
+    customTimers = customTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
     sprite:End();
 end);
 

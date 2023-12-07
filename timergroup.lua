@@ -1,5 +1,9 @@
 local d3d      = require('d3d8');
 local ffi      = require('ffi');
+ffi.cdef[[
+    int16_t GetKeyState(int32_t vkey);
+]]
+
 local TimerGroup = {};
 
 local function HitTest(x, y, hitboxes)
@@ -23,17 +27,24 @@ function TimerGroup:New(settings)
     return o;
 end
 
+local mouseBlocked = true;
 function TimerGroup:HandleMouse(e)
     self.Mouse.X = e.x;
     self.Mouse.Y = e.y;
 
     if (e.message == 513) then
-        if (self.ShiftCancel) and (IsShiftPressed()) then
+        if (self.Settings.ShiftCancel) and (IsShiftPressed()) then
             local entry = HitTest(self.Mouse.X, self.Mouse.Y, self.Hitboxes);
             if entry then
                 entry.Data.Local.Delete = true;
+                e.blocked = true;
+                mouseBlocked = true;
             end
         end
+    end
+    if (e.message == 514) and (mouseBlocked) then
+        e.blocked = true;
+        mouseBlocked = false;
     end
 end
 
@@ -75,9 +86,6 @@ function TimerGroup:Render(sprite, data)
                 renderData.Percent = 0;
             else
                 renderData.Percent = renderData.Duration / (entry.Expiration - entry.Creation);
-                if (not self.Settings.CountDown) then
-                    renderData.Percent = (1 - renderData.Percent);
-                end
             end
 
             local comparePercent = renderData.Percent * 100;
@@ -109,13 +117,18 @@ function TimerGroup:Render(sprite, data)
         table.sort(sortable, function(a,b) return (a.Creation < b.Creation) end);
     elseif (self.Settings.SortType == 'Alphabetical') then
         table.sort(sortable, function(a,b) return (a.Label < b.Label) end);
-    else
+    elseif (self.Settings.SortType == 'Nominal') then
         table.sort(sortable, function(a,b) return (a.Duration < b.Duration) end);
+    elseif (self.Settings.SortType == 'Percentage') then
+        table.sort(sortable, function(a,b) return (a.Percent < b.Percent) end);
     end
 
     local position = { X=self.Settings.Position.X, Y=self.Settings.Position.Y };
     self.Hitboxes = T{};
     for index,entry in ipairs(sortable) do
+        if (not self.Settings.CountDown) then
+            entry.Percent = (1 - entry.Percent);
+        end
         local hitbox = self.TimerRenderer:DrawTimer(sprite, position, entry);
         self.Hitboxes:append({ Hitbox=hitbox, Data=entry });
         if (index == self.Settings.MaxBars) then
