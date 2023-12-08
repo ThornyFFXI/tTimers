@@ -76,6 +76,8 @@ end
 --[[
     Data must contain the following members:
     Creation [os.clock()]
+    Duration (number) - Time until timer expires, in seconds.
+    TotalDuration (number) - Total duration of timer.
     Label [string]
     Local [table] - Table for storing items at scope of timer.  Member 'Delete' is reserved, and if set to true, removes the timer.
     Expiration [os.clock()]
@@ -86,7 +88,6 @@ end
 function TimerGroup:Render(timers)
     local time = os.clock();
     for _, timerData in ipairs(timers) do
-        timerData.Duration = timerData.Expiration - time;
         if (timerData.Duration <= 0) then
             if ((timerData.Duration * -1) > self.Settings.CompletionDuration) then
                 timerData.Local.Delete = true;
@@ -103,14 +104,14 @@ function TimerGroup:Render(timers)
         if (timerData.Local.Delete ~= true) then
             local renderData = {};
             renderData.Creation = timerData.Creation;
-            renderData.Duration = timerData.Expiration - time;
+            renderData.Duration = timerData.Duration;
             if (renderData.Duration <= 0) then
                 if (self.Settings.AnimateCompletion) then
                     renderData.Complete = true;
                 end
                 renderData.Percent = 0;
             else
-                renderData.Percent = renderData.Duration / (timerData.Expiration - timerData.Creation);
+                renderData.Percent = renderData.Duration / timerData.TotalDuration;
             end
 
             local comparePercent = renderData.Percent * 100;

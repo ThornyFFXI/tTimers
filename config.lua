@@ -58,7 +58,6 @@ function config:Render()
                 if imgui.BeginTabItem('Panels##tTimersConfigLayoutsTab') then
                     imgui.TextColored(header, 'Panel Type');
                     imgui.ShowHelp('Allows you to select which panel\'s settings you wish to change.');
-                    state.ForceShowPanel = true;
                     if (imgui.BeginCombo('##tTimersPanelSelection', panels[state.SelectedPanel], ImGuiComboFlags_None)) then
                         for index,panelName in ipairs(panels) do
                             if (imgui.Selectable(panelName, index == state.SelectedPanel)) then
@@ -75,7 +74,6 @@ function config:Render()
                     
                     imgui.TextColored(header, 'Panel Renderer');
                     imgui.ShowHelp('Allows you to choose which renderer will draw the timer elements.');
-                    state.ForceShowPanel = true;
                     if (imgui.BeginCombo('##tTimersRendererSelection', self.State.Renderers[self.State.SelectedRenderer], ImGuiComboFlags_None)) then
                         for index,renderer in ipairs(self.State.Renderers) do
                             if (imgui.Selectable(renderer, index == state.SelectedRenderer)) then
@@ -141,9 +139,16 @@ function config:Render()
                         settings.save();
                     end
                     imgui.ShowHelp('If not enabled, this panel won\'t show at all.');
-                    imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Allow Drag', 'AllowDrag'), state.AllowDrag);
+                    
+                    buffer[1] = panel.AllowDrag;
+                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Allow Drag', 'AllowDrag'), buffer)) then
+                        panel.AllowDrag = buffer[1];
+                    end
                     imgui.ShowHelp('When enabled, you can drag the timer panel around.  This will end when config window is closed or another panel is selected.');
-                    imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Debug Timers', 'ShowDebugTimers'), state.ShowDebugTimers);
+                    buffer[1] = panel.ShowDebugTimers;
+                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Debug Timers', 'ShowDebugTimers'), buffer)) then
+                        panel.ShowDebugTimers = buffer[1];
+                    end
                     imgui.ShowHelp('When enabled, the timer panel will be filled with debug timers.  This will end when config window is closed or another panel is selected.  Dummy timers will self-reset every 30 seconds.');
                     
                     imgui.TextColored(header, 'Behavior');
@@ -204,7 +209,7 @@ function config:Render()
                     
                     if (imgui.Button('Defaults(This Panel)##tTimersDefaultThis')) then                        
                         gSettings[panelName] = gDefaultSettings[panelName]:copy(true);
-                        gPanels[panelName]:UpdateSettings(gSettings[panelName]);
+                        gPanels[panelName]:UpdateSettings(gSettings[panelName], true);
                         settings.save();
                         self:GetRenderers(gPanels[panelName].Settings);
                     end
@@ -212,17 +217,13 @@ function config:Render()
                     if (imgui.Button('Defaults(All Panels)##tTimersDefaultAll')) then
                         for _,panel in ipairs(panels) do
                             gSettings[panel] = gDefaultSettings[panel]:copy(true);
-                            gPanels[panel]:UpdateSettings(gSettings[panel]);
+                            gPanels[panel]:UpdateSettings(gSettings[panel], true);
                         end
                         settings.save();
                         self:GetRenderers(gPanels[panelName].Settings);
                     end
 
                     imgui.EndTabItem();
-                else
-                    state.ForceShowPanel = false;
-                    state.AllowDrag[1] = false;
-                    state.ShowDebugTimers[1] = false;
                 end
                 
                 if imgui.BeginTabItem('Buffs##tTimersConfigBuffsTab') then
@@ -235,7 +236,10 @@ function config:Render()
         end
         
         if (state.IsOpen[1] == false) then
-            state.ForceShowPanel = false;
+            for name,panel in pairs(gPanels) do
+                panel.AllowDrag = false;
+                panel.ShowDebugTimers = false;
+            end
         end
     end
 
@@ -246,9 +250,6 @@ end
 
 function config:Show()
     self.State.IsOpen[1] = true;
-    self.State.AllowDrag = { false };
-    self.State.ShowDebugTimers = { false };
-    self.State.SelectedPanel = 1;
     self:GetRenderers(gPanels.Buff.Settings);
 end
 

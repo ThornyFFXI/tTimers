@@ -84,7 +84,7 @@ gDefaultSettings = T{
         },
     },
 };
-gSettings = settings.load(gDefaultSettings);
+gSettings = settings.load(gDefaultSettings:copy(true));
 
 --Initialize panels..
 local group          = require('timergroup');

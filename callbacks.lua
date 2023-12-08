@@ -9,15 +9,11 @@ local trackers      = T{
 }
 
 ashita.events.register('d3d_present', 'd3d_present_cb', function ()
-    local forcePanel, configState = config:Render();
+    config:Render();
     for _,entry in ipairs(trackers) do
         local panel = gPanels[entry.Name];
-        if (forcePanel == entry.Name) and (configState.AllowDrag[1]) then
-            panel.AllowDrag = true;
-        else
-            panel.AllowDrag = false;
-        end
-        if (forcePanel == entry.Name) and (configState.ShowDebugTimers[1]) then
+        if (panel.ShowDebugTimers) then
+            entry.Tracker:Tick();
             panel:Render(dummyTracker:Tick(entry.Name));
         else
             panel:Render(entry.Tracker:Tick());
@@ -52,19 +48,49 @@ ashita.events.register('command', 'command_cb', function (e)
     if (#args > 1) then
         if (args[2] == 'custom') then
             if (#args >= 4) then
-                local newCustomTimer = {
-                    Creation = os.clock(),
-                    Label = args[3],
-                    Local = T{},
-                    Expiration = os.clock() + tonumber(args[4])
-                };
-                if (#args > 4) then
-                    newCustomTimer.Tooltip = args[5];
+                local duration;
+                if type(args[4]) == 'string' then
+                    local multiplier = 1;
+                    local trail = string.lower(string.sub(args[4], -2));
+                    if trail == 's' then
+                        args[4] = string.sub(args[4], 1, -2);
+                    elseif (trail == 'm') then
+                        multiplier = 60;
+                        args[4] = string.sub(args[4], 1, -2);
+                    elseif (trail == 'h') then
+                        multiplier = 3600;                        
+                        args[4] = string.sub(args[4], 1, -2);
+                    end
+                    local time = tonumber(args[4]);
+                    if type(time) == 'number' then
+                        duration = time * multiplier;
+                    end
                 end
-                customTracker:AddTimer(newCustomTimer);
+                if (type(duration) == 'number') then
+                    local newCustomTimer = {
+                        Creation = os.clock(),
+                        Label = args[3],
+                        Local = T{},
+                        Expiration = os.clock() + duration,
+                        TotalDuration = duration;
+                    };
+                    if (#args > 4) then
+                        newCustomTimer.Tooltip = args[5];
+                    end
+                    customTracker:AddTimer(newCustomTimer);
+                end
             end
             e.blocked = true;
             return;
+        end
+    end
+end);
+
+ashita.events.register('packet_in', 'packet_in_cb', function (e)
+    for _,tracker in ipairs(trackers) do
+        local fn = tracker.Tracker.HandleIncomingPacket;
+        if fn then
+            fn(tracker.Tracker, e);
         end
     end
 end);

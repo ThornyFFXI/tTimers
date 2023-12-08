@@ -1,19 +1,17 @@
 local tracker = {};
-tracker.State = {
-    ActiveTimers = T{};
-    Reset = 0,
-};
-
 local times = T{ 0, 10, 20, 30, 60, 300, 600, 1200, 3600 };
-local lastPanel;
-local MaxTimers;
+local panelState = {};
 function tracker:Tick(panelName)
+    local state = panelState[panelName];
+    local time = os.clock();
     local max = gPanels[panelName].Settings.MaxTimers;
-    if (os.clock() > self.State.Reset) or (panelName ~= lastPanel) or (max ~= MaxTimers) then
-        lastPanel = panelName;
-        MaxTimers = max;
-        self.ActiveTimers = T{};
-        for i = 1,MaxTimers+1 do
+    if (state == nil) or (os.clock() > state.Reset) or (max ~= state.Max) then
+        local newState = {
+            ActiveTimers = T{},
+            Max = max,
+            Reset = os.clock() + 30,
+        };
+        for i = 1,max+1 do
             local duration = times[i];
             if duration == nil then
                 duration = times[#times];
@@ -25,14 +23,17 @@ function tracker:Tick(panelName)
                 Local = T{},
                 Expiration = os.clock() + duration,
                 Tooltip = string.format('You are now hovering over Dummy %s %u.', panelName, i);
+                TotalDuration = duration,
             };
-            self.ActiveTimers:append(newCustomTimer);
+            newState.ActiveTimers:append(newCustomTimer);
         end
-        self.State.Reset = os.clock() + 30;
+        state = newState;
+        panelState[panelName] = state;
     end
 
-    self.ActiveTimers = self.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
-    return self.ActiveTimers;
+    state.ActiveTimers = state.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
+    state.ActiveTimers:each(function(a) a.Duration = a.Expiration - time; end);
+    return state.ActiveTimers;
 end
 
 return tracker;
