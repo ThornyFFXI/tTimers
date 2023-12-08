@@ -1,28 +1,15 @@
 local config = require('config');
-local d3d = require('d3d8');
-local ffi = require('ffi');
-
 local buffTracker = require('bufftracker');
 local debuffTracker = require('debufftracker');
 local recastTracker = require('recasttracker');
 local customTimers = T{};
 
-local sprite = ffi.new('ID3DXSprite*[1]');
-if (ffi.C.D3DXCreateSprite(d3d.get_device(), sprite) == ffi.C.S_OK) then
-    sprite = d3d.gc_safe_release(ffi.cast('ID3DXSprite*', sprite[0]));
-else
-    sprite = nil;
-    Error('Failed to create sprite.');
-end
-
 ashita.events.register('d3d_present', 'd3d_present_cb', function ()
-    sprite:Begin();
-    gPanels.Buffs:Render(sprite, buffTracker:Tick());
-    gPanels.Debuffs:Render(sprite, debuffTracker:Tick());
-    gPanels.Recasts:Render(sprite, recastTracker:Tick());
-    gPanels.Custom:Render(sprite, customTimers);
+    gPanels.Buffs:Render(buffTracker:Tick());
+    gPanels.Debuffs:Render(debuffTracker:Tick());
+    gPanels.Recasts:Render(recastTracker:Tick());
+    gPanels.Custom:Render(customTimers);
     customTimers = customTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
-    sprite:End();
 end);
 
 ashita.events.register('mouse', 'mouse_cb', function (e)

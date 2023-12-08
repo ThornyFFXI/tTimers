@@ -5,10 +5,11 @@ settings         = require('settings');
 --Initialize Settings..
 local defaultSettings = T{
     Buffs = {
-        Position = { X=0, Y=0 },
-        Scale = 1,
         Enabled = true,
+        Position = { X=80, Y=200 },
         Renderer = 'default',
+        Scale = 1,
+        MaxBars = 6,
         ShiftCancel = true,
         CountDown = true,
         ShowTenths = true,
@@ -16,18 +17,19 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        DefaultColor = 0xFF00FF00,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
             { Mode='Seconds', Limit=30, Color=0xFF999900 },
+            { Mode='Default', Color=0xFF00FF00 },
         },
     },
     
     Debuffs = {
-        Position = { X=0, Y=0 },
-        Scale = 1,
         Enabled = true,
+        Position = { X=80, Y=200 },
         Renderer = 'default',
+        Scale = 1,
+        MaxBars = 6,
         ShiftCancel = true,
         CountDown = true,
         ShowTenths = true,
@@ -35,18 +37,19 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        DefaultColor = 0xFF00FF00,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
             { Mode='Seconds', Limit=30, Color=0xFF999900 },
+            { Mode='Default', Color=0xFF00FF00 },
         },
     },
     
     Recasts = {
-        Position = { X=0, Y=0 },
-        Scale = 1,
         Enabled = true,
+        Position = { X=80, Y=200 },
         Renderer = 'default',
+        Scale = 1,
+        MaxBars = 6,
         ShiftCancel = true,
         CountDown = false,
         ShowTenths = true,
@@ -54,29 +57,34 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        DefaultColor = 0xFFFF0000,
         ColorThresholds = {
             { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
             { Mode='Seconds', Limit=30, Color=0xFF999900 },
+            { Mode='Default', Color=0xFFFF0000 },
         },
     },
     
     Custom = {
-        Position = { X=80, Y=200 },
-        Scale = 1,
+        AllowDrag = true,
         Enabled = true,
+        Position = { X=80, Y=200 },
         Renderer = 'default',
+        Scale = 1.2,
+        MaxBars = 6,
         ShiftCancel = true,
-        CountDown = false,
+        CountDown = true,
         ShowTenths = true,
         SortType = 'Nominal',
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        DefaultColor = 0xFFFF0000,
         ColorThresholds = {
+            { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
+            { Mode='Seconds', Limit=30, Color=0xFF999900 },
+            { Mode='Default', Color=0xFF00FF00 },
             { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
             { Mode='Seconds', Limit=30, Color=0xFF999900 },
+            { Mode='Default', Color=0xFFFF0000 },
         },
     },
 };
