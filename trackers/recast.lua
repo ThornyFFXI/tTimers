@@ -93,6 +93,18 @@ local function get_stratagem_data(index)
     return baseRecast, chargeValue;
 end
 
+local function timer_to_string(timer)
+    if (timer <= 0) then
+        return 'Ready';
+    end
+
+    if (timer < 60) then
+        return string.format('%u.%u', math.floor(timer), math.fmod(timer * 10, 10));
+    else
+        return string.format('%u:%02u', math.floor(timer / 60), math.floor(math.fmod(timer, 60)));
+    end
+end
+
 local tracker = {};
 local state = {
     AbilityTimers = T{},
@@ -201,25 +213,46 @@ function tracker:UpdateAbilities()
             elseif (id == 102) then
                 local baseRecast, chargeValue = get_ready_data(x);
                 local charges = math.floor((baseRecast - duration) / chargeValue);
+                local maxCharges = baseRecast / chargeValue;
+                local nextCharge = math.fmod(ability.Duration, chargeValue)
                 ability.Label = string.format('Ready[%u]', charges);
                 if (ability.ExpirationTime == nil) then
-                    ability.Duration = math.fmod(ability.Duration, chargeValue);
+                    ability.Duration = nextCharge;
+                    ability.Tooltip = string.format('Current Charges: %u/%u\nNext Charge: %s\nFull Charges: %s',
+                        charges, baseRecast / chargeValue, timer_to_string(nextCharge), timer_to_string(duration)
+                    );
+                else
+                    ability.Tooltip = string.format('Full Charges(%u/%u)', maxCharges, maxCharges);
                 end
                 ability.TotalDuration = chargeValue;
             elseif (id == 195) then
                 local baseRecast, chargeValue = get_quick_draw_data(x);
                 local charges = math.floor((baseRecast - duration) / chargeValue);
+                local maxCharges = baseRecast / chargeValue;
+                local nextCharge = math.fmod(ability.Duration, chargeValue)
                 ability.Label = string.format('Quick Draw[%u]', charges);
                 if (ability.ExpirationTime == nil) then
-                    ability.Duration = math.fmod(ability.Duration, chargeValue);
+                    ability.Duration = nextCharge;
+                    ability.Tooltip = string.format('Current Charges: %u/%u\nNext Charge: %s\nFull Charges: %s',
+                        charges, baseRecast / chargeValue, timer_to_string(nextCharge), timer_to_string(duration)
+                    );
+                else
+                    ability.Tooltip = string.format('Full Charges(%u/%u)', maxCharges, maxCharges);
                 end
                 ability.TotalDuration = chargeValue;
             elseif (id == 231) then
                 local baseRecast, chargeValue = get_stratagem_data(x);
                 local charges = math.floor((baseRecast - duration) / chargeValue);
+                local maxCharges = baseRecast / chargeValue;
+                local nextCharge = math.fmod(ability.Duration, chargeValue)
                 ability.Label = string.format('Stratagems[%u]', charges);
                 if (ability.ExpirationTime == nil) then
-                    ability.Duration = math.fmod(ability.Duration, chargeValue);
+                    ability.Duration = nextCharge;
+                    ability.Tooltip = string.format('Current Charges: %u/%u\nNext Charge: %s\nFull Charges: %s',
+                        charges, maxCharges, timer_to_string(nextCharge), timer_to_string(duration)
+                    );
+                else
+                    ability.Tooltip = string.format('Full Charges(%u/%u)', maxCharges, maxCharges);
                 end
                 ability.TotalDuration = chargeValue;
             elseif (id == 254) then
