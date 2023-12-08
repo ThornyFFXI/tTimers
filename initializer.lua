@@ -3,13 +3,13 @@ gTextureCache    = require('texturecache');
 settings         = require('settings');
 
 --Initialize Settings..
-local defaultSettings = T{
-    Buffs = {
+gDefaultSettings = T{
+    Buff = T{
         Enabled = true,
-        Position = { X=80, Y=200 },
-        Renderer = 'default',
-        Scale = 1,
-        MaxBars = 6,
+        Position = T{ X=80, Y=200 },
+        Renderer = 'classic',
+        Scale = 1.25,
+        MaxTimers = 10,
         ShiftCancel = true,
         CountDown = true,
         ShowTenths = true,
@@ -17,19 +17,19 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = {
-            { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            { Mode='Seconds', Limit=30, Color=0xFF999900 },
-            { Mode='Default', Color=0xFF00FF00 },
+        ColorThresholds = T{
+            T{ Mode='Seconds', Limit=15, Color=0xFFFF0000 },
+            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
+            T{ Mode='Default', Color=0xFF00FF00 },
         },
     },
     
-    Debuffs = {
+    Debuff = T{
         Enabled = true,
-        Position = { X=80, Y=200 },
-        Renderer = 'default',
-        Scale = 1,
-        MaxBars = 6,
+        Position = T{ X=80, Y=200 },
+        Renderer = 'classic',
+        Scale = 1.25,
+        MaxTimers = 10,
         ShiftCancel = true,
         CountDown = true,
         ShowTenths = true,
@@ -37,19 +37,19 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = {
-            { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            { Mode='Seconds', Limit=30, Color=0xFF999900 },
-            { Mode='Default', Color=0xFF00FF00 },
+        ColorThresholds = T{
+            T{ Mode='Seconds', Limit=15, Color=0xFFFF0000 },
+            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
+            T{ Mode='Default', Color=0xFF00FF00 },
         },
     },
     
-    Recasts = {
+    Recast = T{
         Enabled = true,
-        Position = { X=80, Y=200 },
-        Renderer = 'default',
-        Scale = 1,
-        MaxBars = 6,
+        Position = T{ X=80, Y=200 },
+        Renderer = 'classic',
+        Scale = 1.25,
+        MaxTimers = 10,
         ShiftCancel = true,
         CountDown = false,
         ShowTenths = true,
@@ -57,47 +57,41 @@ local defaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = {
-            { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            { Mode='Seconds', Limit=30, Color=0xFF999900 },
-            { Mode='Default', Color=0xFFFF0000 },
+        ColorThresholds = T{
+            T{ Mode='Seconds', Limit=15, Color=0xFF00FF00 },
+            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
+            T{ Mode='Default', Color=0xFFFF0000 },
         },
     },
     
-    Custom = {
-        AllowDrag = true,
+    Custom = T{
         Enabled = true,
-        Position = { X=80, Y=200 },
-        Renderer = 'default',
-        Scale = 1.2,
-        MaxBars = 6,
+        Position = T{ X=335, Y=200 },
+        Renderer = 'classic',
+        Scale = 1.25,
+        MaxTimers = 10,
         ShiftCancel = true,
-        CountDown = true,
+        CountDown = false,
         ShowTenths = true,
         SortType = 'Nominal',
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = {
-            { Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            { Mode='Seconds', Limit=30, Color=0xFF999900 },
-            { Mode='Default', Color=0xFF00FF00 },
-            { Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            { Mode='Seconds', Limit=30, Color=0xFF999900 },
-            { Mode='Default', Color=0xFFFF0000 },
+        ColorThresholds = T{
+            T{ Mode='Seconds', Limit=15, Color=0xFF00FF00 },
+            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
+            T{ Mode='Default', Color=0xFFFF0000 },
         },
     },
 };
-gSettings = defaultSettings;
---gSettings = settings.load(defaultSettings);
-
+gSettings = settings.load(gDefaultSettings);
 
 --Initialize panels..
 local group          = require('timergroup');
 gPanels = T{
-    ['Buffs'] = group:New(gSettings.Buffs),
-    ['Debuffs'] = group:New(gSettings.Debuffs),
-    ['Recasts'] = group:New(gSettings.Recasts),
+    ['Buff'] = group:New(gSettings.Buff),
+    ['Debuff'] = group:New(gSettings.Debuff),
+    ['Recast'] = group:New(gSettings.Recast),
     ['Custom'] = group:New(gSettings.Custom),
 };
 
@@ -109,4 +103,4 @@ local function UpdateSettings(newSettings)
         entry:UpdateSettings(panelSettings, true);
     end
 end
---settings.register('settings', 'settings_update', UpdateSettings);
+settings.register('settings', 'settings_update', UpdateSettings);

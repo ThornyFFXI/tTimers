@@ -1,15 +1,34 @@
-local config = require('config');
-local buffTracker = require('bufftracker');
-local debuffTracker = require('debufftracker');
-local recastTracker = require('recasttracker');
-local customTimers = T{};
+local config        = require('config');
+local customTracker = require('trackers.custom');
+local dummyTracker  = require('trackers.dummy');
+local trackers      = T{
+    { Name='Buff',   Tracker=require('trackers.buff') },
+    { Name='Debuff', Tracker=require('trackers.debuff') },
+    { Name='Recast', Tracker=require('trackers.recast') },
+    { Name='Custom',  Tracker=customTracker },
+}
 
 ashita.events.register('d3d_present', 'd3d_present_cb', function ()
-    gPanels.Buffs:Render(buffTracker:Tick());
-    gPanels.Debuffs:Render(debuffTracker:Tick());
-    gPanels.Recasts:Render(recastTracker:Tick());
-    gPanels.Custom:Render(customTimers);
-    customTimers = customTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
+    local forcePanel, configState = config:Render();
+    for _,entry in ipairs(trackers) do
+        local panel = gPanels[entry.Name];
+        if (forcePanel == entry.Name) and (configState.AllowDrag[1]) then
+            panel.AllowDrag = true;
+        else
+            panel.AllowDrag = false;
+        end
+        if (forcePanel == entry.Name) and (configState.ShowDebugTimers[1]) then
+            panel:Render(dummyTracker:Tick(entry.Name));
+        else
+            panel:Render(entry.Tracker:Tick());
+        end
+    end
+    for i = #trackers,1,-1 do
+        local panel = gPanels[trackers[i].Name];
+        if panel:RenderTooltip() then
+            break;
+        end
+    end
 end);
 
 ashita.events.register('mouse', 'mouse_cb', function (e)
@@ -42,7 +61,7 @@ ashita.events.register('command', 'command_cb', function (e)
                 if (#args > 4) then
                     newCustomTimer.Tooltip = args[5];
                 end
-                customTimers:append(newCustomTimer);
+                customTracker:AddTimer(newCustomTimer);
             end
             e.blocked = true;
             return;

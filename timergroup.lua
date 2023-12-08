@@ -1,6 +1,6 @@
-local d3d      = require('d3d8');
-local ffi      = require('ffi');
-ffi.cdef[[
+local d3d = require('d3d8');
+local ffi = require('ffi');
+ffi.cdef [[
     int16_t GetKeyState(int32_t vkey);
 ]]
 local function IsShiftPressed()
@@ -21,10 +21,12 @@ function TimerGroup:New(settings)
     local o = {};
     setmetatable(o, self);
     self.__index = self;
-    o.Mouse = { X=-1, Y=-1 };
-    o.Settings = {};
-    o.DragPosition = { 0, 0 };
+    o.AllowDrag = false;
     o.DragActive = false;
+    o.DragPosition = { 0, 0 };
+    o.Mouse = { X = -1, Y = -1 };
+    o.Settings = {};
+    o.ShowDebugTimers = false;
     o:UpdateSettings(settings, true);
     return o;
 end
@@ -39,11 +41,12 @@ function TimerGroup:HandleMouse(e)
         pos.Y = pos.Y + (e.y - self.DragPosition[2]);
         self.DragPosition[1] = e.x;
         self.DragPosition[2] = e.y;
-        if (e.message == 514) or (not self.Settings.AllowDrag) then
-            self.Settings.AllowDrag = false;
+        if (e.message == 514) or (not self.AllowDrag) then
             self.DragActive = false;
+            self.Settings.Original.Position = self.Settings.Position;
+            settings.save();
         end
-    elseif (self.Settings.AllowDrag) and (e.message == 513) and self.TimerRenderer:DragHitTest(e.x, e.y) then
+    elseif (self.AllowDrag) and (e.message == 513) and self.TimerRenderer:DragHitTest(e.x, e.y) then
         self.DragActive = true;
         self.DragPosition[1] = e.x;
         self.DragPosition[2] = e.y;
@@ -59,6 +62,7 @@ function TimerGroup:HandleMouse(e)
                 renderData.Local.Delete = true;
                 e.blocked = true;
                 self.MouseBlocked = true;
+                return;
             end
         end
     end
@@ -81,7 +85,7 @@ end
 ]]--
 function TimerGroup:Render(timers)
     local time = os.clock();
-    for _,timerData in ipairs(timers) do
+    for _, timerData in ipairs(timers) do
         timerData.Duration = timerData.Expiration - time;
         if (timerData.Duration <= 0) then
             if ((timerData.Duration * -1) > self.Settings.CompletionDuration) then
@@ -94,10 +98,11 @@ function TimerGroup:Render(timers)
         return;
     end
 
-    local renderDataContainer = T{};
-    for _,timerData in ipairs(timers) do
+    local renderDataContainer = T {};
+    for _, timerData in ipairs(timers) do
         if (timerData.Local.Delete ~= true) then
             local renderData = {};
+            renderData.Creation = timerData.Creation;
             renderData.Duration = timerData.Expiration - time;
             if (renderData.Duration <= 0) then
                 if (self.Settings.AnimateCompletion) then
@@ -109,7 +114,7 @@ function TimerGroup:Render(timers)
             end
 
             local comparePercent = renderData.Percent * 100;
-            for _,setting in ipairs(self.Settings.ColorThresholds) do
+            for _, setting in ipairs(self.Settings.ColorThresholds) do
                 if (setting.Mode == 'Seconds') then
                     if (renderData.Duration < setting.Limit) then
                         renderData.Color = setting.Color;
@@ -136,39 +141,45 @@ function TimerGroup:Render(timers)
     end
 
     if (self.Settings.SortType == 'Creation') then
-        table.sort(renderDataContainer, function(a,b) return (a.Creation < b.Creation) end);
+        table.sort(renderDataContainer, function(a, b) return (a.Creation < b.Creation) end);
     elseif (self.Settings.SortType == 'Alphabetical') then
-        table.sort(renderDataContainer, function(a,b) return (a.Label < b.Label) end);
+        table.sort(renderDataContainer, function(a, b) return (a.Label < b.Label) end);
     elseif (self.Settings.SortType == 'Nominal') then
-        table.sort(renderDataContainer, function(a,b) return (a.Duration < b.Duration) end);
+        table.sort(renderDataContainer, function(a, b) return (a.Duration < b.Duration) end);
     elseif (self.Settings.SortType == 'Percentage') then
-        table.sort(renderDataContainer, function(a,b) return (a.Percent < b.Percent) end);
+        table.sort(renderDataContainer, function(a, b) return (a.Percent < b.Percent) end);
     end
 
     local count = #renderDataContainer;
-    if (count > self.Settings.MaxBars) then
-        for i = (self.Settings.MaxBars+1),count do
+    if (count > self.Settings.MaxTimers) then
+        for i = (self.Settings.MaxTimers + 1), count do
             renderDataContainer[i] = nil;
         end
     end
 
     if (not self.Settings.CountDown) then
-        for _,renderData in ipairs(renderDataContainer) do
+        for _, renderData in ipairs(renderDataContainer) do
             renderData.Percent = (1 - renderData.Percent);
         end
     end
 
     self.TimerRenderer:Begin();
-    self.TimerRenderer:DrawTimers({ X=self.Settings.Position.X, Y=self.Settings.Position.Y }, renderDataContainer);    
-    if (self.Settings.AllowDrag) then
-        self.TimerRenderer:DrawDragHandle({X=self.Settings.Position.X, Y=self.Settings.Position.Y });
-    elseif (self.Settings.UseTooltips) then        
-        local renderData = self.TimerRenderer:TimerHitTest(self.Mouse.X, self.Mouse.Y);
-        if renderData then
-            self.TimerRenderer:DrawTooltip({X = self.Mouse.X, Y=self.Mouse.Y}, renderData);
-        end
+    self.TimerRenderer:DrawTimers({ X = self.Settings.Position.X, Y = self.Settings.Position.Y }, renderDataContainer);
+    if (self.AllowDrag) then
+        self.TimerRenderer:DrawDragHandle({ X = self.Settings.Position.X, Y = self.Settings.Position.Y });
     end
     self.TimerRenderer:End();
+end
+function TimerGroup:RenderTooltip();
+    if (not self.AllowDrag) and (self.Settings.UseTooltips) then
+        local renderData = self.TimerRenderer:TimerHitTest(self.Mouse.X, self.Mouse.Y);
+        if renderData then
+            self.TimerRenderer:Begin();
+            self.TimerRenderer:DrawTooltip({ X = self.Mouse.X, Y = self.Mouse.Y }, renderData);
+            self.TimerRenderer:End();
+            return true;
+        end
+    end
 end
 
 function TimerGroup:UpdateSettings(settings, force)
@@ -177,8 +188,8 @@ function TimerGroup:UpdateSettings(settings, force)
             self.TimerRenderer:Destroy();
             self.TimerRenderer = nil;
         end
-        
-        local potentialPaths = T{
+
+        local potentialPaths = T {
             settings.Renderer,
             string.format('%sconfig/addons/%s/renderers/%s', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
             string.format('%sconfig/addons/%s/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
@@ -186,7 +197,7 @@ function TimerGroup:UpdateSettings(settings, force)
             string.format('%saddons/%s/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer)
         };
 
-        for _,path in ipairs(potentialPaths) do
+        for _, path in ipairs(potentialPaths) do
             if (path ~= '') and (ashita.fs.exists(path)) then
                 self.TimerRenderer = LoadFile_s(path);
                 if (self.TimerRenderer ~= nil) then
@@ -194,7 +205,7 @@ function TimerGroup:UpdateSettings(settings, force)
                 end
             end
         end
-        
+
         if (self.TimerRenderer == nil) then
             Error(string.format('Failed to load renderer: $H%s$R', settings.Renderer));
         else
@@ -204,10 +215,16 @@ function TimerGroup:UpdateSettings(settings, force)
             };
             self.TimerRenderer:Initialize();
         end
+    elseif (self.TimerRenderer ~= nil) then
+        self.TimerRenderer.Settings = {
+            Scale = settings.Scale,
+            ShowTenths = settings.ShowTenths,
+        };
     end
-    
+
     self.Settings = T(settings):copy(true);
-    for _,colorThreshold in ipairs(self.Settings.ColorThresholds) do
+    self.Settings.Original = settings;
+    for _, colorThreshold in ipairs(self.Settings.ColorThresholds) do
         colorThreshold.Color = UINT32_TO_D3D_COLOR(colorThreshold.Color);
     end
 end

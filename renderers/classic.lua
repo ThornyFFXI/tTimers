@@ -3,7 +3,7 @@ local ffi = require('ffi');
 local gdi = require('gdifonts.include');
 
 local outlineData = {    
-    width = 242,
+    width = 202,
     height = 16,
     corner_rounding = 6,
     fill_color = 0xFF303030,
@@ -166,6 +166,7 @@ end
         renderData(each entry):
             Color (number, uint32 hex ARGB) - The color the element should be displayed as.
             Complete (true or nil) - If true, timer has elapsed and a completion animation should be shown.
+            Creation (number) - The time (os.clock()) the timer was created.
             Duration (number) - Time remaining(seconds).
             Label (string) - Text label to be shown.
             Local (table) - Table tied to the timer object for storing things that may need garbage collection.
@@ -210,8 +211,8 @@ function renderer:DrawTimers(position, renderDataContainer)
             if (renderData.Local.Visible) then
                 texture, rect = bar:get_texture();
                 rect.right = baseWidth;
-                vec_position.x = position.X + shrink;
-                vec_position.y = position.Y + shrink;
+                vec_position.x = position.X + (shrink * scale);
+                vec_position.y = position.Y + (shrink * scale);
                 sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, renderData.Color);
             end
         else
@@ -219,8 +220,8 @@ function renderer:DrawTimers(position, renderDataContainer)
             if (barWidth > 0) then
                 texture, rect = bar:get_texture();
                 rect.right = barWidth;
-                vec_position.x = position.X + shrink;
-                vec_position.y = position.Y + shrink;
+                vec_position.x = position.X + (shrink * scale);
+                vec_position.y = position.Y + (shrink * scale);
                 sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, renderData.Color);
             end
         end
@@ -263,6 +264,7 @@ end
     renderData(table):
         Color (number, uint32 hex ARGB) - The color the element should be displayed as.
         Complete (true or nil) - If true, timer has elapsed and a completion animation should be shown.
+            Creation (number) - The time (os.clock()) the timer was created.
         Duration (number) - Time remaining(seconds).
         Label (string) - Text label to be shown.
         Local (table) - Table tied to the timer object for storing things that may need garbage collection.
@@ -274,7 +276,7 @@ end
     position should be modified to indicate position of next element in group.
 ]]--
 function renderer:DrawTooltip(position, renderData)
-    if (self.Sprite == nil) then
+    if (self.Sprite == nil) or (renderData.Tooltip == nil) or (renderData.Tooltip == '') then
         return;
     end
 
