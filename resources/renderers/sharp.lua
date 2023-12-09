@@ -1,18 +1,18 @@
 local gdi = require('gdifonts.include');
 local settings = {
     Bar = {
-        Texture = 'elements/bar_rounded.png',
-        OutlineTexture = 'elements/outline_rounded.png',
+        Texture = 'elements/bar_sharp.png',
+        OutlineTexture = 'elements/outline_sharp.png',
         Width = 170,
         Height = 16,
         BaseOffsetX = 0,
-        BaseOffsetY = -17,
+        BaseOffsetY = 0,
         NameOffsetX = 6,
         NameOffsetY = 1.5,
         TimerOffsetX = 6,
         TimerOffsetY = 1.5,
         HorizontalSpacing = 0,
-        VerticalSpacing = -17,
+        VerticalSpacing = 17,
     };
     Color = {
         Blend = true,
@@ -48,7 +48,7 @@ local settings = {
     };
     DragHandle = {
         offset_x = 0,
-        offset_y = -15,
+        offset_y = 0,
         width = 15,
         height = 15,
         corner_rounding = 2,

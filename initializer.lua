@@ -6,8 +6,8 @@ settings         = require('settings');
 gDefaultSettings = T{
     Buff = T{
         Enabled = true,
-        Position = T{ X=80, Y=200 },
-        Renderer = 'classic',
+        Position = T{ X=80, Y=290 },
+        Renderer = 'sharp_bottom_justified',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -17,17 +17,12 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = T{
-            T{ Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
-            T{ Mode='Default', Color=0xFF00FF00 },
-        },
     },
     
     Debuff = T{
         Enabled = true,
-        Position = T{ X=80, Y=200 },
-        Renderer = 'classic',
+        Position = T{ X=80, Y=291 },
+        Renderer = 'sharp',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -37,17 +32,12 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = T{
-            T{ Mode='Seconds', Limit=15, Color=0xFFFF0000 },
-            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
-            T{ Mode='Default', Color=0xFF00FF00 },
-        },
     },
     
     Recast = T{
         Enabled = true,
-        Position = T{ X=80, Y=200 },
-        Renderer = 'classic',
+        Position = T{ X=294, Y=290 },
+        Renderer = 'classic_bottom_justified',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -57,16 +47,11 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = T{
-            T{ Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
-            T{ Mode='Default', Color=0xFFFF0000 },
-        },
     },
     
     Custom = T{
         Enabled = true,
-        Position = T{ X=335, Y=200 },
+        Position = T{ X=294, Y=291 },
         Renderer = 'classic',
         Scale = 1.25,
         MaxTimers = 10,
@@ -77,14 +62,10 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        ColorThresholds = T{
-            T{ Mode='Seconds', Limit=15, Color=0xFF00FF00 },
-            T{ Mode='Seconds', Limit=30, Color=0xFF999900 },
-            T{ Mode='Default', Color=0xFFFF0000 },
-        },
     },
 };
-gSettings = settings.load(gDefaultSettings:copy(true));
+gSettings = gDefaultSettings:copy(true);
+--gSettings = settings.load(gDefaultSettings:copy(true));
 
 --Initialize panels..
 local group          = require('timergroup');
@@ -103,4 +84,4 @@ local function UpdateSettings(newSettings)
         entry:UpdateSettings(panelSettings, true);
     end
 end
-settings.register('settings', 'settings_update', UpdateSettings);
+--settings.register('settings', 'settings_update', UpdateSettings);

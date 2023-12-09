@@ -1,8 +1,8 @@
 local gdi = require('gdifonts.include');
 local settings = {
     Bar = {
-        Texture = 'elements/bar_rounded.png',
-        OutlineTexture = 'elements/outline_rounded.png',
+        Texture = 'elements/bar_sharp.png',
+        OutlineTexture = 'elements/outline_sharp.png',
         Width = 170,
         Height = 16,
         BaseOffsetX = 0,

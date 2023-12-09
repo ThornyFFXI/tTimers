@@ -37,7 +37,7 @@ function TimerGroup:HandleMouse(e)
             self.Settings.Original.Position = self.Settings.Position;
             settings.save();
         end
-    elseif (self.AllowDrag) and (e.message == 513) and self.TimerRenderer:DragHitTest(e.x, e.y) then
+    elseif (self.AllowDrag) and (e.message == 513) and self.TimerRenderer:DragHitTest({X=e.x, Y=e.y}) then
         self.DragActive = true;
         self.DragPosition[1] = e.x;
         self.DragPosition[2] = e.y;
@@ -48,7 +48,7 @@ function TimerGroup:HandleMouse(e)
 
     if (e.message == 513) then
         if (self.Settings.ShiftCancel) and (IsShiftPressed()) then
-            local renderData = self.TimerRenderer:TimerHitTest(self.Mouse.X, self.Mouse.Y);
+            local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
             if renderData then
                 renderData.Local.Delete = true;
                 e.blocked = true;
@@ -138,13 +138,12 @@ function TimerGroup:Render(timers)
     end
     self.TimerRenderer:End();
 end
+
 function TimerGroup:RenderTooltip();
     if (not self.AllowDrag) and (self.Settings.UseTooltips) then
-        local renderData = self.TimerRenderer:TimerHitTest(self.Mouse.X, self.Mouse.Y);
+        local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
         if renderData then
-            self.TimerRenderer:Begin();
             self.TimerRenderer:DrawTooltip({ X = self.Mouse.X, Y = self.Mouse.Y }, renderData);
-            self.TimerRenderer:End();
             return true;
         end
     end
