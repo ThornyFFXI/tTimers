@@ -361,17 +361,3 @@ end
 
 tracker:Initialize();
 return tracker;
-
-
---[[
-    Data must contain the following members:
-    Creation [os.clock()]
-    Duration (number) - Time until timer expires, in seconds.
-    TotalDuration (number) - Total duration of timer.
-    Label [string]
-    Local [table] - Table for storing items at scope of timer.  Member 'Delete' is reserved, and if set to true, removes the timer.
-    Expiration [os.clock()]
-
-    Data can optionally contain:
-    Tooltip [string]
-]]--

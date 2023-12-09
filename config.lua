@@ -14,8 +14,8 @@ local config = {
 function config:GetRenderers(settings)
     local renderers = T{};
     local paths = T{
-        string.format('%sconfig/addons/%s/renderers/', AshitaCore:GetInstallPath(), addon.name),
-        string.format('%saddons/%s/renderers/', AshitaCore:GetInstallPath(), addon.name),
+        string.format('%sconfig/addons/%s/resources/renderers/', AshitaCore:GetInstallPath(), addon.name),
+        string.format('%saddons/%s/resources/renderers/', AshitaCore:GetInstallPath(), addon.name),
     };
 
     for _,path in ipairs(paths) do

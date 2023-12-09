@@ -6,15 +6,6 @@ ffi.cdef [[
 local function IsShiftPressed()
     return (bit.band(ffi.C.GetKeyState(0x10), 0x8000) ~= 0);
 end
-
-local function UINT32_TO_D3D_COLOR(uint)
-    local alpha = bit.rshift(bit.band(uint, 0xFF000000), 24);
-    local red   = bit.rshift(bit.band(uint, 0x00FF0000), 16);
-    local green = bit.rshift(bit.band(uint, 0x0000FF00), 8);
-    local blue  = bit.band(uint, 0x000000FF);
-    return d3d.D3DCOLOR_ARGB(alpha, red, green, blue);
-end
-
 local TimerGroup = {};
 
 function TimerGroup:New(settings)
@@ -113,25 +104,7 @@ function TimerGroup:Render(timers)
             else
                 renderData.Percent = renderData.Duration / timerData.TotalDuration;
             end
-
-            local comparePercent = renderData.Percent * 100;
-            for _, setting in ipairs(self.Settings.ColorThresholds) do
-                if (setting.Mode == 'Seconds') then
-                    if (renderData.Duration < setting.Limit) then
-                        renderData.Color = setting.Color;
-                        break;
-                    end
-                elseif (setting.Mode == 'Percent') then
-                    if (comparePercent < setting.Limit) then
-                        renderData.Color = setting.Color;
-                        break;
-                    end
-                else
-                    renderData.Color = setting.Color;
-                    break;
-                end
-            end
-
+            
             if (renderData.Duration > 0) or (renderData.Complete) then
                 renderData.Local = timerData.Local;
                 renderData.Label = timerData.Label;
@@ -155,12 +128,6 @@ function TimerGroup:Render(timers)
     if (count > self.Settings.MaxTimers) then
         for i = (self.Settings.MaxTimers + 1), count do
             renderDataContainer[i] = nil;
-        end
-    end
-
-    if (not self.Settings.CountDown) then
-        for _, renderData in ipairs(renderDataContainer) do
-            renderData.Percent = (1 - renderData.Percent);
         end
     end
 
@@ -191,11 +158,8 @@ function TimerGroup:UpdateSettings(settings, force)
         end
 
         local potentialPaths = T {
-            settings.Renderer,
-            string.format('%sconfig/addons/%s/renderers/%s', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
-            string.format('%sconfig/addons/%s/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
-            string.format('%saddons/%s/renderers/%s', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
-            string.format('%saddons/%s/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer)
+            string.format('%sconfig/addons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
+            string.format('%saddons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer)
         };
 
         for _, path in ipairs(potentialPaths) do
@@ -211,6 +175,7 @@ function TimerGroup:UpdateSettings(settings, force)
             Error(string.format('Failed to load renderer: $H%s$R', settings.Renderer));
         else
             self.TimerRenderer.Settings = {
+                CountDown = settings.CountDown,
                 Scale = settings.Scale,
                 ShowTenths = settings.ShowTenths,
             };
@@ -218,6 +183,7 @@ function TimerGroup:UpdateSettings(settings, force)
         end
     elseif (self.TimerRenderer ~= nil) then
         self.TimerRenderer.Settings = {
+            CountDown = settings.CountDown,
             Scale = settings.Scale,
             ShowTenths = settings.ShowTenths,
         };
@@ -225,9 +191,6 @@ function TimerGroup:UpdateSettings(settings, force)
 
     self.Settings = T(settings):copy(true);
     self.Settings.Original = settings;
-    for _, colorThreshold in ipairs(self.Settings.ColorThresholds) do
-        colorThreshold.Color = UINT32_TO_D3D_COLOR(colorThreshold.Color);
-    end
 end
 
 return TimerGroup;

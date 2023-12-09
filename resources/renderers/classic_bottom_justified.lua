@@ -2,23 +2,29 @@ local d3d = require('d3d8');
 local ffi = require('ffi');
 local gdi = require('gdifonts.include');
 
-local outlineData = {    
-    width = 202,
-    height = 16,
-    corner_rounding = 6,
-    fill_color = 0xFF303030,
+local barFile = 'elements/bar_rounded.png';
+local outlineFile = 'elements/outline_rounded.png';
+local barSize = {
+    Width = 200,
+    Height = 16,
+    NameOffsetX = 6,
+    NameOffsetY = 1.5,
+    TimerOffsetX = 6,
+    TimerOffsetY = 1.5,
+    HorizontalSpacing = 0,
+    VerticalSpacing = -17,
 };
-local shrink = 1;
-local baseWidth = outlineData.width - (2 * shrink);
-local barData = {
-    width = baseWidth,
-    height = outlineData.height - (2 * shrink),
-    corner_rounding = outlineData.corner_rounding - (2 * shrink),
-    fill_color = 0xFFFFFFFF,
-    gradient_style = gdi.Gradient.TopToBottom,
-    gradient_color =  0x80FFFFFF,
+local colorSettings = {
+    Blend = true,
+    LowThreshold = 10,
+    MidThreshold = 30,
+    HighThreshold = 60,
+    BG = { R=0, G=0, B=0, A=255 },
+    Low = { R=255, G=0, B=0, A=255 },
+    Middle = { R=255, G=255, B=0, A=255 },
+    High = { R=0, G=255, B=0, A=255 },
 };
-local labelData = {
+local labelSettings = {
     font_color = 0xFFFFFFFF,
     font_family = 'Arial',
     font_height = 11,
@@ -26,7 +32,7 @@ local labelData = {
     outline_width = 2,
     visible = true,
 };
-local tipData = {
+local tooltipSettings = {
     font_color = 0xFFFFFFFF,
     font_family = 'Arial',
     font_height = 10,
@@ -38,7 +44,7 @@ local tipData = {
         fill_color = 0xFF000000,
     }
 };
-local dragData = {
+local dragHandleSettings = {
     width = 15,
     height = 15,
     corner_rounding = 2,
@@ -49,6 +55,40 @@ local dragData = {
     gradient_color =  0x8080B3FF,
     visible = true;
 };
+
+local function D3D_COLOR(input)
+    return d3d.D3DCOLOR_ARGB(input.A, input.R, input.G, input.B);
+end
+local keys = T{ 'R', 'G', 'B', 'A' };
+local function D3D_COLOR_BLEND(startColor, endColor, percent)
+    local input = {};
+    for _,key in pairs(keys) do
+        input[key] = math.min(255, math.ceil((startColor[key] * (1 - percent)) + (endColor[key] * percent)));
+    end
+    return d3d.D3DCOLOR_ARGB(input.A, input.R, input.G, input.B);
+end
+local function GetColor(renderData)
+    local duration = renderData.Duration;
+    if (duration < colorSettings.LowThreshold) then
+        return D3D_COLOR(colorSettings.Low);
+    elseif (duration < colorSettings.MidThreshold) then
+        if (colorSettings.Blend) then
+            local percent = ((duration - colorSettings.LowThreshold) / colorSettings.LowThreshold);
+            return D3D_COLOR_BLEND(colorSettings.Low, colorSettings.Middle, percent);
+        else
+            return D3D_COLOR(colorSettings.Middle);
+        end
+    elseif (duration < colorSettings.HighThreshold) then
+        if (colorSettings.Blend) then
+            local percent = ((duration - colorSettings.MidThreshold) / colorSettings.MidThreshold);
+            return D3D_COLOR_BLEND(colorSettings.Middle, colorSettings.High, percent);
+        else
+            return D3D_COLOR(colorSettings.Middle);
+        end
+    else
+        return D3D_COLOR(colorSettings.High);
+    end
+end
 
 local function CreateHitBox(x, y, width, height)
     return { MinX=x, MaxX=(x+width), MinY=y, MaxY=(y+height) };
@@ -76,10 +116,12 @@ local renderer = {};
     These values are reserved and will be modified from outside of the renderer.
     They should be honored by the renderer.
 
+    Countdown (boolean) - If true, the timer should progress from full to empty, if false it should progress from empty to full.
     Scale (number) - Size multiplier, where 1 is the default size.
     ShowTenths (boolean) - If true, show a decimal place for partial seconds on timers with less than 1 minute remaining.
 ]]
 renderer.Settings = {
+    CountDown = true,
     Scale = 1,
     ShowTenths = true,
 };
@@ -96,9 +138,11 @@ function renderer:Initialize()
         Error('Failed to create sprite.');
     end
     
-    self.Bar = gdi:create_rect(barData, true);
-    self.Drag = gdi:create_rect(dragData, true);
-    self.Outline = gdi:create_rect(outlineData, true);
+    self.Bar = gTextureCache:GetTexture(barFile);
+    self.BarRect = ffi.new('RECT', { 0, 0, self.Bar.Width, self.Bar.Height });
+    self.Outline = gTextureCache:GetTexture(outlineFile);
+    self.OutlineRect = ffi.new('RECT', { 0, 0, self.Outline.Width, self.Outline.Height });
+    self.Drag = gdi:create_rect(dragHandleSettings, true);
     self.HitBoxes = T{};
 end
 
@@ -142,12 +186,12 @@ end
 
 function renderer:DrawDragHandle(position)
     if (self.Sprite ~= nil) then
-        local width = dragData.width * self.Settings.Scale;
-        local height = dragData.height * self.Settings.Scale;
+        local width = dragHandleSettings.width * self.Settings.Scale;
+        local height = dragHandleSettings.height * self.Settings.Scale;
         self.Drag:set_width(width);
         self.Drag:set_height(height);
         self.Drag:set_position_x(position.X);
-        self.Drag:set_position_y(position.Y);
+        self.Drag:set_position_y(position.Y - height);
         self.Drag:render(self.Sprite);
 
         self.DragHitBox = CreateHitBox(position.X, position.Y, width, height);
@@ -177,6 +221,8 @@ end
     This function should create a method of tracking hitboxes for each timer drawn, so that renderer:HitTest can reference it.
 ]]--
 local vec_position = ffi.new('D3DXVECTOR2', { 0, 0, });
+local vec_scale = ffi.new('D3DXVECTOR2', { 1, 1 });
+local bgcolor = D3D_COLOR(colorSettings.BG);
 local d3dwhite = d3d.D3DCOLOR_ARGB(255, 255, 255, 255);
 function renderer:DrawTimers(position, renderDataContainer)
     self.HitBoxes = T{};
@@ -185,20 +231,18 @@ function renderer:DrawTimers(position, renderDataContainer)
         return;
     end
     local scale = self.Settings.Scale;
+    local width = barSize.Width * scale;
+    local height = barSize.Height * scale;
+    position.Y = position.Y - height;
     local showTenths = self.Settings.ShowTenths;
-    local vec_scale = ffi.new('D3DXVECTOR2', { scale, scale });
     for _,renderData in ipairs(renderDataContainer) do
-        local outline = self.Outline;
-        outline:set_position_x(position.X);
-        outline:set_position_y(position.Y);
-        local texture, rect = outline:get_texture();
+        vec_scale.x = (barSize.Width / self.Outline.Width) * scale;
+        vec_scale.y = (barSize.Height / self.Outline.Height) * scale;
         vec_position.x = position.X;
         vec_position.y = position.Y;
-        sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, d3dwhite);
+        sprite:Draw(self.Outline.Texture, self.OutlineRect, vec_scale, nil, 0.0, vec_position, bgcolor);
 
-        local width = (outline.settings.width * scale);
-        local height = (outline.settings.height * scale);
-
+        local color = GetColor(renderData);
         local bar = self.Bar;
         if (renderData.Complete) then
             if (renderData.Local.Visible == nil) then
@@ -209,52 +253,51 @@ function renderer:DrawTimers(position, renderDataContainer)
                 renderData.Local.NextFrame = os.clock() + 0.2;
             end
             if (renderData.Local.Visible) then
-                texture, rect = bar:get_texture();
-                rect.right = baseWidth;
-                vec_position.x = position.X + (shrink * scale);
-                vec_position.y = position.Y + (shrink * scale);
-                sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, renderData.Color);
+                self.BarRect.right = self.Bar.Width;
+                vec_scale.x = (barSize.Width / self.Bar.Width) * scale;
+                vec_scale.y = (barSize.Height / self.Bar.Height) * scale;
+                sprite:Draw(self.Bar.Texture, self.BarRect, vec_scale, nil, 0.0, vec_position, color);
             end
         else
-            local barWidth = renderData.Percent * baseWidth;
-            if (barWidth > 0) then
-                texture, rect = bar:get_texture();
-                rect.right = barWidth;
-                vec_position.x = position.X + (shrink * scale);
-                vec_position.y = position.Y + (shrink * scale);
-                sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, renderData.Color);
+            local percent = self.Settings.CountDown and renderData.Percent or (1 - renderData.Percent);
+            if (percent > 0) then
+                self.BarRect.right = percent * self.Bar.Width;
+                vec_scale.x = (barSize.Width / self.Bar.Width) * scale;
+                vec_scale.y = (barSize.Height / self.Bar.Height) * scale;
+                sprite:Draw(self.Bar.Texture, self.BarRect, vec_scale, nil, 0.0, vec_position, color);
             end
         end
 
         if (type(renderData.Label) == 'string') and (renderData.Label ~= '') then
             if (renderData.Local.label == nil) then
-                renderData.Local.label = gdi:create_object(labelData, true);
+                renderData.Local.label = gdi:create_object(labelSettings, true);
             end
 
             local label = renderData.Local.label;
-            label:set_font_height(labelData.font_height * scale);
+            label:set_font_height(labelSettings.font_height * scale);
             label:set_text(renderData.Label);
-            label:set_position_x(position.X + (6 * scale));
-            label:set_position_y(position.Y + (1.5 * scale));
+            label:set_position_x(position.X + (barSize.NameOffsetX * scale));
+            label:set_position_y(position.Y + (barSize.NameOffsetY * scale));
             label:render(sprite);
         end
 
         if (renderData.Duration > 0) then
             if (renderData.Local.duration == nil) then
-                renderData.Local.duration = gdi:create_object(labelData, true);
+                renderData.Local.duration = gdi:create_object(labelSettings, true);
                 renderData.Local.duration:set_font_alignment(2);
             end
 
             local duration = renderData.Local.duration;
-            duration:set_font_height(labelData.font_height * scale);
+            duration:set_font_height(labelSettings.font_height * scale);
             duration:set_text(TimeToString(renderData.Duration, showTenths));
-            duration:set_position_x(position.X + (width - (6 * scale)))
-            duration:set_position_y(position.Y + (1.5 * scale));
+            duration:set_position_x(position.X + ((barSize.Width - barSize.TimerOffsetX) * scale))
+            duration:set_position_y(position.Y + (barSize.TimerOffsetY * scale));
             duration:render(sprite);
         end
 
         self.HitBoxes:append({ RenderData=renderData, HitBox=CreateHitBox(position.X, position.Y, width, height) });
-        position.Y = position.Y + height + (2 * scale);
+        position.X = position.X + (barSize.HorizontalSpacing * scale);
+        position.Y = position.Y + (barSize.VerticalSpacing * scale);
     end
 end
 
@@ -281,11 +324,11 @@ function renderer:DrawTooltip(position, renderData)
     end
 
     if (renderData.Local.tooltip == nil) then
-        renderData.Local.tooltip = gdi:create_object(tipData, true);
+        renderData.Local.tooltip = gdi:create_object(tooltipSettings, true);
     end
 
     local tooltip = renderData.Local.tooltip;
-    tooltip:set_font_height(math.floor(tipData.font_height * self.Settings.Scale));
+    tooltip:set_font_height(math.floor(tooltipSettings.font_height * self.Settings.Scale));
     tooltip:set_text(renderData.Tooltip);
     tooltip:set_position_x(position.X);
     tooltip:set_position_y(position.Y + (15 * self.Settings.Scale));
