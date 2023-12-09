@@ -64,5 +64,4 @@ local settings = {
 local baseFile = loadfile(string.format('%saddons/%s/resources/renderers/dependencies/base.lua', AshitaCore:GetInstallPath(), addon.name));
 local baseFunction = baseFile();
 local renderer = baseFunction(settings);
-print(type(renderer));
 return renderer;
