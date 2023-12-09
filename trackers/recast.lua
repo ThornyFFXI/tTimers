@@ -190,7 +190,7 @@ function tracker:UpdateAbilities()
                 if (timer > 0) then
                     if (ability.ExpirationTime) then
                         ability.ExpirationTime = nil;
-                        ability.Local.Delete = nil;
+                        ability.Delete = nil;
                         ability.Hide = nil;
                         ability.Creation = time;
                     end
@@ -298,7 +298,7 @@ function tracker:UpdateSpells()
             if (duration > 0) then
                 if (spell.ExpirationTime) then
                     spell.ExpirationTime = nil;
-                    spell.Local.Delete = nil;
+                    spell.Delete = nil;
                     spell.Hide = nil;
                     spell.Creation = time;
                 end
@@ -324,8 +324,8 @@ end
 
 function tracker:Tick()
     state.ActiveTimers = state.ActiveTimers:each(function(a)
-        if (a.Local.Delete == true) then
-            a.Local.Delete = nil;
+        if (a.Delete == true) then
+            a.Delete = nil;
             a.Hide = true;
         end
     end);

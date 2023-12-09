@@ -47,6 +47,42 @@ function config:GetRenderers(settings)
     end
 end
 
+function config:GetSkins(panel)
+    if (type(panel.TimerRenderer.LoadSkin) ~= 'function') then
+        self.State.Skins = nil;
+        return;
+    end
+
+    local skins = T{};
+    local rendererName = panel.Settings.Renderer;
+    local paths = T{
+        string.format('%sconfig/addons/%s/resources/renderers/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
+        string.format('%saddons/%s/resources/renderers/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
+    };
+
+    for _,path in ipairs(paths) do
+        if not (ashita.fs.exists(path)) then
+            ashita.fs.create_directory(path);
+        end
+        local contents = ashita.fs.get_directory(path, '.*\\.lua');
+        for _,file in pairs(contents) do
+            file = string.sub(file, 1, -5);
+            if not skins:contains(file) then
+                skins:append(file);
+            end
+        end
+    end
+    
+    self.State.Skins = skins;
+    self.State.SelectedSkin = 1;
+    local selectedSkin = panel.Settings.Skin[rendererName]
+    for index,skin in ipairs(skins) do
+        if (selectedSkin == skin) then
+            self.State.SelectedSkin = index;
+        end
+    end
+end
+
 
 function config:Render()
     local state = self.State;
@@ -63,6 +99,7 @@ function config:Render()
                             if (imgui.Selectable(panelName, index == state.SelectedPanel)) then
                                 state.SelectedPanel = index;
                                 self:GetRenderers(gPanels[panelName].Settings);
+                                self:GetSkins(gPanels[panels[state.SelectedPanel]]);
                             end
                         end
                         imgui.EndCombo();
@@ -74,16 +111,35 @@ function config:Render()
                     
                     imgui.TextColored(header, 'Panel Renderer');
                     imgui.ShowHelp('Allows you to choose which renderer will draw the timer elements.');
-                    if (imgui.BeginCombo('##tTimersRendererSelection', self.State.Renderers[self.State.SelectedRenderer], ImGuiComboFlags_None)) then
-                        for index,renderer in ipairs(self.State.Renderers) do
+                    if (imgui.BeginCombo('##tTimersRendererSelection', state.Renderers[state.SelectedRenderer], ImGuiComboFlags_None)) then
+                        for index,renderer in ipairs(state.Renderers) do
                             if (imgui.Selectable(renderer, index == state.SelectedRenderer)) then
                                 state.SelectedRenderer = index;
                                 panelSettings.Renderer = renderer;
                                 panel:UpdateSettings(panelSettings, true);
+                                self:GetSkins(panel);
                                 settings.save();
                             end
                         end
                         imgui.EndCombo();
+                    end
+
+                    if (self.State.Skins ~= nil) then                        
+                        imgui.TextColored(header, 'Panel Skin');
+                        imgui.ShowHelp('Allows you to choose a skin to modify your current renderer.  Not all renderers are required to provide skins.');
+                        if (imgui.BeginCombo('##tTimersSkinSelection', state.Skins[state.SelectedSkin], ImGuiComboFlags_None)) then
+                            for index,skin in ipairs(state.Skins) do
+                                if (imgui.Selectable(skin, index == state.SelectedSkin)) then
+                                    state.SelectedSkin = index;
+                                    panelSettings.Skin[panelSettings.Renderer] = skin;                                    
+                                    local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', panelSettings.Renderer, skin));
+                                    skinPath = GetFilePath(skinPath);
+                                    panel:UpdateSkin(LoadFile_s(skinPath));
+                                    settings.save();
+                                end
+                            end
+                            imgui.EndCombo();
+                        end
                     end
                     imgui.TextColored(header, 'Draw Scale');
                     imgui.ShowHelp('Allows you to resize the timer panel.');
@@ -120,7 +176,7 @@ function config:Render()
                     
                     imgui.TextColored(header, 'Sort Type');
                     imgui.ShowHelp('Determines the order timers will be displayed in.');
-                    if (imgui.BeginCombo('##tTimersSortSelection', sortTypes[self.State.SelectedSort], ImGuiComboFlags_None)) then
+                    if (imgui.BeginCombo('##tTimersSortSelection', sortTypes[state.SelectedSort], ImGuiComboFlags_None)) then
                         for index,sortType in ipairs(sortTypes) do
                             if (imgui.Selectable(sortType, index == state.SelectedSort)) then
                                 state.SelectedSort = index;
@@ -251,6 +307,7 @@ end
 function config:Show()
     self.State.IsOpen[1] = true;
     self:GetRenderers(gPanels.Buff.Settings);
+    self:GetSkins(gPanels.Buff);
 end
 
 return config;

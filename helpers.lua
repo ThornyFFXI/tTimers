@@ -9,6 +9,22 @@ function Error(text)
     print(chat.header(addon.name) .. highlighted .. '\30\01');
 end
 
+function GetFilePath(path)
+    local potentialPaths = T{
+        path,
+        string.format('%sconfig/addons/%s/resources/%s', AshitaCore:GetInstallPath(), addon.name, path),
+        string.format('%saddons/%s/resources/%s', AshitaCore:GetInstallPath(), addon.name, path),
+    };
+
+    for _,potentialPath in ipairs(potentialPaths) do
+        if (potentialPath ~= '') and (ashita.fs.exists(potentialPath)) then
+            return potentialPath;
+        end
+    end
+
+    return nil;
+end
+
 function GetImagePath(image, default)
     if (string.sub(image, 1, 5) == 'ITEM:') then
         return image;

@@ -8,7 +8,7 @@ local function IsShiftPressed()
 end
 local TimerGroup = {};
 
-function TimerGroup:New(settings)
+function TimerGroup:New(newSettings)
     local o = {};
     setmetatable(o, self);
     self.__index = self;
@@ -18,7 +18,7 @@ function TimerGroup:New(settings)
     o.Mouse = { X = -1, Y = -1 };
     o.Settings = {};
     o.ShowDebugTimers = false;
-    o:UpdateSettings(settings, true);
+    o:UpdateSettings(newSettings, true);
     return o;
 end
 
@@ -50,7 +50,7 @@ function TimerGroup:HandleMouse(e)
         if (self.Settings.ShiftCancel) and (IsShiftPressed()) then
             local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
             if renderData then
-                renderData.Local.Delete = true;
+                renderData.Delete = true;
                 e.blocked = true;
                 self.MouseBlocked = true;
                 return;
@@ -81,7 +81,7 @@ function TimerGroup:Render(timers)
     for _, timerData in ipairs(timers) do
         if (timerData.Duration <= 0) then
             if ((timerData.Duration * -1) > self.Settings.CompletionDuration) then
-                timerData.Local.Delete = true;
+                timerData.Delete = true;
             end
         end
     end
@@ -92,7 +92,7 @@ function TimerGroup:Render(timers)
 
     local renderDataContainer = T {};
     for _, timerData in ipairs(timers) do
-        if (timerData.Local.Delete ~= true) then
+        if (timerData.Delete ~= true) then
             local renderData = {};
             renderData.Creation = timerData.Creation;
             renderData.Duration = timerData.Duration;
@@ -149,47 +149,68 @@ function TimerGroup:RenderTooltip();
     end
 end
 
-function TimerGroup:UpdateSettings(settings, force)
-    if (self.Settings.TimerRenderer ~= settings.TimerRenderer) or (force == true) or (self.TimerRenderer == nil) then
+function TimerGroup:UpdateSettings(newSettings, force)
+    if (self.Settings.Renderer ~= newSettings.Renderer) or (force == true) or (self.TimerRenderer == nil) then
         if (self.TimerRenderer ~= nil) then
             self.TimerRenderer:Destroy();
             self.TimerRenderer = nil;
         end
 
         local potentialPaths = T {
-            string.format('%sconfig/addons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer),
-            string.format('%saddons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, settings.Renderer)
+            string.format('%sconfig/addons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, newSettings.Renderer),
+            string.format('%saddons/%s/resources/renderers/%s.lua', AshitaCore:GetInstallPath(), addon.name, newSettings.Renderer)
         };
 
+        local renderer;
         for _, path in ipairs(potentialPaths) do
             if (path ~= '') and (ashita.fs.exists(path)) then
-                self.TimerRenderer = LoadFile_s(path);
-                if (self.TimerRenderer ~= nil) then
+                renderer = LoadFile_s(path);
+                if (renderer ~= nil) then
                     break;
                 end
             end
         end
 
-        if (self.TimerRenderer == nil) then
-            Error(string.format('Failed to load renderer: $H%s$R', settings.Renderer));
+        if (renderer == nil) then
+            Error(string.format('Failed to load renderer: $H%s$R', newSettings.Renderer));
         else
+            local skinName = newSettings.Skin[newSettings.Renderer];
+            if (skinName == nil) then
+                newSettings.Skin[newSettings.Renderer] = renderer.DefaultSkin;
+                skinName = renderer.DefaultSkin;
+                settings.save();
+            end
+            local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', newSettings.Renderer, skinName));
+            local skin = LoadFile_s(skinPath);
+            self.TimerRenderer = renderer:New(skin);
             self.TimerRenderer.Settings = {
-                CountDown = settings.CountDown,
-                Scale = settings.Scale,
-                ShowTenths = settings.ShowTenths,
+                CountDown = newSettings.CountDown,
+                Scale = newSettings.Scale,
+                ShowTenths = newSettings.ShowTenths,
             };
-            self.TimerRenderer:Initialize();
         end
     elseif (self.TimerRenderer ~= nil) then
         self.TimerRenderer.Settings = {
-            CountDown = settings.CountDown,
-            Scale = settings.Scale,
-            ShowTenths = settings.ShowTenths,
+            CountDown = newSettings.CountDown,
+            Scale = newSettings.Scale,
+            ShowTenths = newSettings.ShowTenths,
         };
+        if (type(self.TimerRenderer.LoadSkin) == 'function') and (newSettings.Skin[newSettings.Renderer] ~= self.Settings.Skin) then
+            local skinName = newSettings.Skin[newSettings.Renderer];
+            local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', newSettings.Renderer, skinName));
+            local skin = GetFilePath(skinPath);
+            self.TimerRenderer:LoadSkin(skin);
+        end
     end
 
-    self.Settings = T(settings):copy(true);
-    self.Settings.Original = settings;
+    self.Settings = T(newSettings):copy(true);
+    self.Settings.Original = newSettings;
+end
+
+function TimerGroup:UpdateSkin(skin)
+    if (type(self.TimerRenderer.LoadSkin) == 'function') then
+        self.TimerRenderer:LoadSkin(skin);
+    end
 end
 
 return TimerGroup;

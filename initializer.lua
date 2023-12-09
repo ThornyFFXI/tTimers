@@ -7,7 +7,7 @@ gDefaultSettings = T{
     Buff = T{
         Enabled = true,
         Position = T{ X=80, Y=290 },
-        Renderer = 'sharp_bottom_justified',
+        Renderer = 'classic',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -17,12 +17,15 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        Skin = T{
+            ['classic'] = 'rounded_bottom_justified',
+        },
     },
     
     Debuff = T{
         Enabled = true,
         Position = T{ X=80, Y=291 },
-        Renderer = 'sharp',
+        Renderer = 'classic',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -32,12 +35,15 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        Skin = T{
+            ['classic'] = 'rounded',
+        },
     },
     
     Recast = T{
         Enabled = true,
         Position = T{ X=294, Y=290 },
-        Renderer = 'classic_bottom_justified',
+        Renderer = 'classic',
         Scale = 1.25,
         MaxTimers = 10,
         ShiftCancel = true,
@@ -47,6 +53,9 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        Skin = T{
+            ['classic'] = 'rectangle_bottom_justified',
+        },
     },
     
     Custom = T{
@@ -62,6 +71,9 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        Skin = T{
+            ['classic'] = 'rectangle',
+        },
     },
 };
 gSettings = gDefaultSettings:copy(true);

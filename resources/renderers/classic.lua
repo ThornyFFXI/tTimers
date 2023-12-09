@@ -1,67 +1,349 @@
-local gdi = require('gdifonts.include');
-local settings = {
-    Bar = {
-        Texture = 'elements/bar_rounded.png',
-        OutlineTexture = 'elements/outline_rounded.png',
-        Width = 170,
-        Height = 16,
-        BaseOffsetX = 0,
-        BaseOffsetY = 0,
-        NameOffsetX = 6,
-        NameOffsetY = 1.5,
-        TimerOffsetX = 6,
-        TimerOffsetY = 1.5,
-        HorizontalSpacing = 0,
-        VerticalSpacing = 17,
-    };
-    Color = {
-        Blend = true,
-        LowThreshold = 10,
-        MidThreshold = 30,
-        HighThreshold = 60,
-        BG = { R=0, G=0, B=0, A=255 },
-        Low = { R=255, G=0, B=0, A=255 },
-        Middle = { R=255, G=255, B=0, A=255 },
-        High = { R=0, G=255, B=0, A=255 },
-    };
-    Label = {
-        font_color = 0xFFFFFFFF,
-        font_family = 'Arial',
-        font_height = 11,
-        outline_color = 0xFF000000,
-        outline_width = 2,
-        visible = true,
-    };
-    ToolTip = {
-        offset_x = 0,
-        offset_y = 0,
-        font_color = 0xFFFFFFFF,
-        font_family = 'Arial',
-        font_height = 10,
-        visible = true,
-        background = {
-            visible = true,
-            corner_rounding = 3,
-            outline_width = 2,
-            fill_color = 0xFF000000,
-        }
-    };
-    DragHandle = {
-        offset_x = 0,
-        offset_y = 0,
-        width = 15,
-        height = 15,
-        corner_rounding = 2,
-        fill_color = 0xFF0047B3,
-        outline_color = 0xFF000000,
-        outline_width = 1,
-        gradient_style = gdi.Gradient.TopLeftToBottomRight,
-        gradient_color =  0x8080B3FF,
-        visible = true;
-    };
-};
+--[[
+    Custom renderers need to return a table with the members outlined here.
+    Members of the Settings subtable will be modified from outside the renderer, but defaults can be set here.
+    The renderer should respect any modifications to the Settings table.
 
-local baseFile = loadfile(string.format('%saddons/%s/resources/renderers/dependencies/base.lua', AshitaCore:GetInstallPath(), addon.name));
-local baseFunction = baseFile();
-local renderer = baseFunction(settings);
+
+    Necessary Members:
+    Settings(table)
+
+    Necessary Functions:
+    New(skin) - Called to instantiate renderer.
+        skin(table) - Loaded skin.
+    Destroy() - Called if renderer is discarded, to clean up any floating resources.
+    Begin() - Called prior to drawing timers and drag handle.
+    End() - Called after drawing timers and drag handle.
+    DrawDragHandle(position) - Should draw a handle used to drag the panel around.
+        position(table) - Base position of the panel.
+    DrawTimers(position, renderDataContainer) - Should draw all timer objects.
+        position(table) - Base position of the panel.
+        renderDataContainer(table) - Objects to be drawn.
+    DrawTooltip(position, renderData) - Should draw a tooltip for the specified timer object.
+        position(table) - Current mouse position.
+        renderData(table) - Data for the object specified.
+    DragHitTest(position) - Should return true if the mouse coordinates fall within the drag handle, false if not.
+        position(table) - Current mouse position.
+    TimerHitTest(position) - Should return the associated renderData if mouse coordinates fall within a timer, nil if not.
+        position(table) - Current mouse position.
+
+    Settings
+        Countdown (boolean) - If true, the timer should progress from full to empty, if false it should progress from empty to full.
+        Scale (number) - Size multiplier, where 1 is the default size.
+        ShowTenths (boolean) - If true, show a decimal place for partial seconds on timers with less than 1 minute remaining.
+
+    Position
+        X(float)
+        Y(float)
+
+    renderDataContainer(table) - Array-style table containing any number of renderData values.
+        renderData(table)
+
+    renderData
+        Complete (true or nil) - If true, timer has elapsed and a completion animation should be shown.
+        Creation (number) - The time (os.clock()) the timer was created.
+        Duration (number) - Time remaining until timer expires(seconds).
+        Label (string) - Text label to be shown.
+        Local (table) - Table tied to the timer object for storing things that may need garbage collection.
+            Delete (true or nil) - Reserved value.  If set to true, the timer will be removed next frame.
+        Percent (number) - Percent of display to be shown, in range 0-1.
+        Tooltip (string) - Text to draw tooltip.
+
+    
+    Skins:
+        Renderer does not need to be skinnable, but there is extra support for it in config if so.
+        All skin files should be placed in 'ashita/config/addons/ttimers/resources/renderers/skins/renderername/' and end in .lua.
+        Skin files should be solely composed of serializable lua[no functions or cdata].  If using skins, at least one skin should be provided.
+        If renderer is skinnable, the following function must be implemented:
+
+        LoadSkin(skin) - Called to update skin.
+            skin(table) - Name of the skin being used to initialize.  Name will be filename without path or .lua.
+
+
+        The following member must be provided:
+            DefaultSkin(string) - the name of the skin to be loaded if user has not yet provided a skin.
+
+        The following function is optional:
+            DrawSkinEditor(isOpen, saveChanges, skin) - Called to draw an imgui window to edit skins.  
+                saveChanges(table) - Table with only one value, set to false.
+                    Setting to true will save the skin to disc.
+                isOpen(table) - Table with only one value, set to true.
+                    Setting to false will close editor.
+                skin(table) - Modifiable table containing skin data.
+]]--
+
+local d3d = require('d3d8');
+local ffi = require('ffi');
+local gdi = require('gdifonts.include');
+
+local function D3D_COLOR(input)
+    return d3d.D3DCOLOR_ARGB(input.A, input.R, input.G, input.B);
+end
+local keys = T{ 'R', 'G', 'B', 'A' };
+local function D3D_COLOR_BLEND(startColor, endColor, percent)
+    local input = {};
+    for _,key in pairs(keys) do
+        input[key] = math.min(255, math.ceil((startColor[key] * (1 - percent)) + (endColor[key] * percent)));
+    end
+    return d3d.D3DCOLOR_ARGB(input.A, input.R, input.G, input.B);
+end
+local function CreateHitBox(x, y, width, height)
+    return { MinX=x, MaxX=(x+width), MinY=y, MaxY=(y+height) };
+end
+local function TimeToString(timer, showTenths)
+    if (timer >= 3600) then
+        local h = math.floor(timer / 3600);
+        local m = math.floor(math.fmod(timer, 3600) / 60);
+        return string.format('%i:%02i', h, m);
+    elseif (timer >= 60) then
+        local m = math.floor(timer / 60);
+        local s = math.floor(math.fmod(timer, 60));
+        return string.format('%i:%02i', m, s);
+    elseif (showTenths) then
+        return string.format('%i.%i', math.floor(timer), math.floor(math.fmod(timer, 1) * 10));
+    else
+        return string.format('%i', math.floor(timer));
+    end
+end
+
+local renderer = {};
+renderer.DefaultSkin = 'rounded';
+
+--[[
+    Internal function.  Not required.
+]]--
+function renderer:New(skin)
+    local o = {};
+    setmetatable(o, self);
+    self.__index = self;
+    o.HitBoxes = T{};
+    o.Settings = {
+        CountDown = true,
+        Scale = 1,
+        ShowTenths = true,
+    };
+    o.Sprite = ffi.new('ID3DXSprite*[1]');
+    if (ffi.C.D3DXCreateSprite(d3d.get_device(), o.Sprite) == ffi.C.S_OK) then
+        o.Sprite = d3d.gc_safe_release(ffi.cast('ID3DXSprite*', o.Sprite[0]));
+    else
+        o.Sprite = nil;
+        Error('Failed to create sprite.');
+    end
+    o:LoadSkin(skin);
+    return o;
+end
+
+function renderer:LoadSkin(skin)
+    self.Skin = skin:copy(true);
+    self.Bar = gTextureCache:GetTexture(self.Skin.Bar.Texture);
+    self.BarRect = ffi.new('RECT', { 0, 0, self.Bar.Width, self.Bar.Height });
+    self.Outline = gTextureCache:GetTexture(self.Skin.Bar.OutlineTexture);
+    self.OutlineRect = ffi.new('RECT', { 0, 0, self.Outline.Width, self.Outline.Height });
+    self.Drag = gdi:create_rect(self.Skin.DragHandle, true);
+end
+
+function renderer:Destroy()
+end
+
+function renderer:Begin()
+    if (self.Sprite) then
+        self.Sprite:Begin();
+    end
+end
+
+function renderer:End()
+    if (self.Sprite) then
+        self.Sprite:End();
+    end
+end
+
+--[[
+    Internal function.  Not required.
+]]--
+function renderer:GetColor(renderData)
+    local colorSettings = self.Skin.Color;
+    local duration = renderData.Duration;
+    if (duration < colorSettings.LowThreshold) then
+        if self.Settings.Countdown then
+            return D3D_COLOR(colorSettings.Low);
+        else
+            return D3D_COLOR(colorSettings.High);
+        end
+    elseif (duration < colorSettings.MidThreshold) then
+        if (colorSettings.Blend) then
+            local percent = ((duration - colorSettings.LowThreshold) / colorSettings.LowThreshold);            
+            if self.Settings.Countdown then
+                return D3D_COLOR_BLEND(colorSettings.Low, colorSettings.Middle, percent);
+            else
+                return D3D_COLOR_BLEND(colorSettings.High, colorSettings.Middle, percent);
+            end
+        else
+            return D3D_COLOR(colorSettings.Middle);
+        end
+    elseif (duration < colorSettings.HighThreshold) then
+        if (colorSettings.Blend) then
+            local percent = ((duration - colorSettings.MidThreshold) / colorSettings.MidThreshold);
+            if self.Settings.Countdown then
+                return D3D_COLOR_BLEND(colorSettings.Middle, colorSettings.High, percent);
+            else
+                return D3D_COLOR_BLEND(colorSettings.Middle, colorSettings.Low, percent);
+            end
+        else
+            return D3D_COLOR(colorSettings.Middle);
+        end
+    else
+        if self.Settings.Countdown then
+            return D3D_COLOR(colorSettings.High);
+        else
+            return D3D_COLOR(colorSettings.Low);
+        end
+    end
+end
+
+function renderer:DrawDragHandle(position)
+    if (self.Sprite ~= nil) then
+        local layout = self.Skin.DragHandle;
+        local width = layout.width * self.Settings.Scale;
+        local height = layout.height * self.Settings.Scale;
+        local posX = position.X + (layout.offset_x * self.Settings.Scale);
+        local posY = position.Y + (layout.offset_y * self.Settings.Scale);
+        self.Drag:set_width(width);
+        self.Drag:set_height(height);
+        self.Drag:set_position_x(posX);
+        self.Drag:set_position_y(posY);
+        self.Drag:render(self.Sprite);
+        self.DragHitBox = CreateHitBox(posX, posY, width, height);
+    end
+end
+
+local vec_position = ffi.new('D3DXVECTOR2', { 0, 0, });
+local vec_scale = ffi.new('D3DXVECTOR2', { 1, 1 });
+local d3dwhite = d3d.D3DCOLOR_ARGB(255, 255, 255, 255);
+function renderer:DrawTimers(position, renderDataContainer)
+    self.HitBoxes = T{};
+    local sprite = self.Sprite;
+    if (sprite == nil) then
+        return;
+    end
+    local scale = self.Settings.Scale;
+    local barLayout = self.Skin.Bar;
+    position.X = position.X + (barLayout.BaseOffsetX * scale);
+    position.Y = position.Y + (barLayout.BaseOffsetY * scale);
+    local width = barLayout.Width * scale;
+    local height = barLayout.Height * scale;
+    local showTenths = self.Settings.ShowTenths;
+    for _,renderData in ipairs(renderDataContainer) do
+        vec_scale.x = (barLayout.Width / self.Outline.Width) * scale;
+        vec_scale.y = (barLayout.Height / self.Outline.Height) * scale;
+        vec_position.x = position.X;
+        vec_position.y = position.Y;
+        sprite:Draw(self.Outline.Texture, self.OutlineRect, vec_scale, nil, 0.0, vec_position, D3D_COLOR(self.Skin.Color.BG));
+
+        local color = self:GetColor(renderData);
+        if (renderData.Complete) then
+            if (renderData.Local.Visible == nil) then
+                renderData.Local.Visible = false;
+                renderData.Local.NextFrame = os.clock() + 0.2;
+            elseif (os.clock() > renderData.Local.NextFrame) then
+                renderData.Local.Visible = not renderData.Local.Visible;
+                renderData.Local.NextFrame = os.clock() + 0.2;
+            end
+            if (renderData.Local.Visible) then
+                self.BarRect.right = self.Bar.Width;
+                vec_scale.x = (barLayout.Width / self.Bar.Width) * scale;
+                vec_scale.y = (barLayout.Height / self.Bar.Height) * scale;
+                sprite:Draw(self.Bar.Texture, self.BarRect, vec_scale, nil, 0.0, vec_position, color);
+            end
+        else
+            local percent = self.Settings.CountDown and renderData.Percent or (1 - renderData.Percent);
+            if (percent > 0) then
+                self.BarRect.right = percent * self.Bar.Width;
+                vec_scale.x = (barLayout.Width / self.Bar.Width) * scale;
+                vec_scale.y = (barLayout.Height / self.Bar.Height) * scale;
+                sprite:Draw(self.Bar.Texture, self.BarRect, vec_scale, nil, 0.0, vec_position, color);
+            end
+        end
+
+        local labelLayout = self.Skin.Label;
+        if (type(renderData.Label) == 'string') and (renderData.Label ~= '') then
+            if (renderData.Local.label == nil) then
+                renderData.Local.label = gdi:create_object(labelLayout, true);
+            end
+
+            local label = renderData.Local.label;
+            label:set_font_height(labelLayout.font_height * scale);
+            label:set_text(renderData.Label);
+            label:set_position_x(position.X + (barLayout.NameOffsetX * scale));
+            label:set_position_y(position.Y + (barLayout.NameOffsetY * scale));
+            label:render(sprite);
+        end
+
+        if (renderData.Duration > 0) then
+            if (renderData.Local.duration == nil) then
+                renderData.Local.duration = gdi:create_object(labelLayout, true);
+                renderData.Local.duration:set_font_alignment(2);
+            end
+
+            local duration = renderData.Local.duration;
+            duration:set_font_height(labelLayout.font_height * scale);
+            duration:set_text(TimeToString(renderData.Duration, showTenths));
+            duration:set_position_x(position.X + ((barLayout.Width - barLayout.TimerOffsetX) * scale))
+            duration:set_position_y(position.Y + (barLayout.TimerOffsetY * scale));
+            duration:render(sprite);
+        end
+
+        self.HitBoxes:append({ RenderData=renderData, HitBox=CreateHitBox(position.X, position.Y, width, height) });
+        position.X = position.X + (barLayout.HorizontalSpacing * scale);
+        position.Y = position.Y + (barLayout.VerticalSpacing * scale);
+    end
+end
+
+function renderer:DrawTooltip(position, renderData)
+    if (self.Sprite == nil) or (renderData.Tooltip == nil) or (renderData.Tooltip == '') then
+        return;
+    end
+
+    local layout = self.Skin.ToolTip;
+    if (renderData.Local.tooltip == nil) then
+        renderData.Local.tooltip = gdi:create_object(layout, true);
+    end
+
+
+    local tooltip = renderData.Local.tooltip;
+    tooltip:set_font_height(math.floor(layout.font_height * self.Settings.Scale));
+    tooltip:set_text(renderData.Tooltip);
+    tooltip:set_position_x(position.X + (layout.offset_x * self.Settings.Scale));
+    tooltip:set_position_y(position.Y + (layout.offset_y * self.Settings.Scale));
+
+    self.Sprite:Begin();
+    tooltip:render(self.Sprite);
+    self.Sprite:End();
+end
+
+function renderer:DragHitTest(position)
+    local x = position.X;
+    local y = position.Y;
+    local hitBox = self.DragHitBox;
+    if hitBox then
+        if (x >= hitBox.MinX) and (x <= hitBox.MaxX) then
+            if (y >= hitBox.MinY) and (y <= hitBox.MaxY) then
+                return true;
+            end
+        end
+    end
+    return false;
+end
+
+function renderer:TimerHitTest(position)
+    local x = position.X;
+    local y = position.Y;
+    for _,entry in ipairs(self.HitBoxes) do
+        local hitBox = entry.HitBox;
+        if (x >= hitBox.MinX) and (x <= hitBox.MaxX) then
+            if (y >= hitBox.MinY) and (y <= hitBox.MaxY) then
+                return entry.RenderData;
+            end
+        end
+    end
+end
+
 return renderer;
