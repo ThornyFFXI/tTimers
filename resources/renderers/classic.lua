@@ -140,32 +140,12 @@ function renderer:New(skin)
     return o;
 end
 
-local function ValidateFont(inputTable)
-    if (not inputTable.support_jp) and (AshitaCore:GetConfigurationManager():GetInt32('boot', 'ashita.language', 'ashita', 2) == 1) then
-        if gdi:get_font_available('Noto Sans JP') then
-            inputTable.font_family = 'Noto Sans JP';
-        else
-            Error(string.format('The font $H%s$R is not flagged as supporting japanese.  If it does, please update the skin.  If not, please install the font $HNoto Sans JP$R for japanese support.', inputTable.font_family));
-        end
-    end
-
-    if (gdi:get_font_available(inputTable.font_family) == false) then
-        Error(string.format('This skin recommends installing the font $H%s$R for best experience.', inputTable.font_family));
-        inputTable.font_family = 'Arial';
-    end
-end
-
 function renderer:LoadSkin(skin)
     self.Skin = skin:copy(true);
     self.Skin.Color.BG = UINT_COLOR_TO_ARRAY(self.Skin.Color.BG);
     self.Skin.Color.Low = UINT_COLOR_TO_ARRAY(self.Skin.Color.Low);
     self.Skin.Color.Middle = UINT_COLOR_TO_ARRAY(self.Skin.Color.Middle);
     self.Skin.Color.High = UINT_COLOR_TO_ARRAY(self.Skin.Color.High);
-
-    ValidateFont(self.Skin.Label);
-    ValidateFont(self.Skin.ToolTip);
-
-
     self.Bar = gTextureCache:GetTexture(self.Skin.Bar.Texture);
     self.BarRect = ffi.new('RECT', { 0, 0, self.Bar.Width, self.Bar.Height });
     self.Outline = gTextureCache:GetTexture(self.Skin.Bar.OutlineTexture);
