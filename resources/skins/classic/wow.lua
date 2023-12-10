@@ -1,9 +1,3 @@
-local gdi = require('gdifonts.include');
-local font = 'Arial';
-if gdi:get_font_available('Friz Quadrata') then
-    font = 'Friz Quadrata';
-end
-
 local settings = T{
     Bar = T{
         Texture = 'skins/classic/assets/bar_wow.png',
@@ -31,7 +25,8 @@ local settings = T{
     };
     Label = T{
         font_color = 0xFFFFFFFF,
-        font_family = font,
+        font_family = 'Friz Quadrata',
+        support_jp = false,
         font_height = 11,
         outline_color = 0xFF000000,
         outline_width = 2,
@@ -41,7 +36,8 @@ local settings = T{
         offset_x = 0,
         offset_y = 12,
         font_color = 0xFFFFFFFF,
-        font_family = font,
+        font_family = 'Friz Quadrata',
+        support_jp = false,
         font_height = 10,
         visible = true,
         background = T{
