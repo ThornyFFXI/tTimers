@@ -51,7 +51,7 @@
     
     Skins:
         Renderer does not need to be skinnable, but there is extra support for it in config if so.
-        All skin files should be placed in 'ashita/config/addons/ttimers/resources/renderers/skins/renderername/' and end in .lua.
+        All skin files should be placed in 'ashita/config/addons/ttimers/resources/skins/renderername/' and end in .lua.
         Skin files should be solely composed of serializable lua[no functions or cdata].  If using skins, at least one skin should be provided.
         If renderer is skinnable, the following function must be implemented:
 
@@ -106,7 +106,7 @@ local function TimeToString(timer, showTenths)
 end
 
 local renderer = {};
-renderer.DefaultSkin = 'rounded';
+renderer.DefaultSkin = 'windower';
 
 --[[
     Internal function.  Not required.
@@ -139,6 +139,7 @@ function renderer:LoadSkin(skin)
     self.Outline = gTextureCache:GetTexture(self.Skin.Bar.OutlineTexture);
     self.OutlineRect = ffi.new('RECT', { 0, 0, self.Outline.Width, self.Outline.Height });
     self.Drag = gdi:create_rect(self.Skin.DragHandle, true);
+    self.SkinTime = os.clock();
 end
 
 function renderer:Destroy()
@@ -154,6 +155,7 @@ function renderer:End()
     if (self.Sprite) then
         self.Sprite:End();
     end
+    self.ForceRedraw = nil;
 end
 
 --[[
@@ -232,6 +234,12 @@ function renderer:DrawTimers(position, renderDataContainer)
     local height = barLayout.Height * scale;
     local showTenths = self.Settings.ShowTenths;
     for _,renderData in ipairs(renderDataContainer) do
+        if ((renderData.Local.SkinTime == nil) or (renderData.Local.SkinTime < self.SkinTime)) then
+            renderData.Local.label = nil;
+            renderData.Local.duration = nil;
+            renderData.Local.tooltip = nil;
+            renderData.Local.SkinTime = self.SkinTime;
+        end
         vec_scale.x = (barLayout.Width / self.Outline.Width) * scale;
         vec_scale.y = (barLayout.Height / self.Outline.Height) * scale;
         vec_position.x = position.X;

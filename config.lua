@@ -56,8 +56,8 @@ function config:GetSkins(panel)
     local skins = T{};
     local rendererName = panel.Settings.Renderer;
     local paths = T{
-        string.format('%sconfig/addons/%s/resources/renderers/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
-        string.format('%saddons/%s/resources/renderers/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
+        string.format('%sconfig/addons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
+        string.format('%saddons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
     };
 
     for _,path in ipairs(paths) do
@@ -132,7 +132,7 @@ function config:Render()
                                 if (imgui.Selectable(skin, index == state.SelectedSkin)) then
                                     state.SelectedSkin = index;
                                     panelSettings.Skin[panelSettings.Renderer] = skin;                                    
-                                    local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', panelSettings.Renderer, skin));
+                                    local skinPath = GetFilePath(string.format('skins/%s/%s.lua', panelSettings.Renderer, skin));
                                     skinPath = GetFilePath(skinPath);
                                     panel:UpdateSkin(LoadFile_s(skinPath));
                                     settings.save();

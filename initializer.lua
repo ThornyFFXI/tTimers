@@ -17,9 +17,7 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        Skin = T{
-            ['classic'] = 'rounded_bottom_justified',
-        },
+        Skin = T{},
     },
     
     Debuff = T{
@@ -35,9 +33,7 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        Skin = T{
-            ['classic'] = 'rounded',
-        },
+        Skin = T{},
     },
     
     Recast = T{
@@ -53,9 +49,7 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        Skin = T{
-            ['classic'] = 'rectangle_bottom_justified',
-        },
+        Skin = T{},
     },
     
     Custom = T{
@@ -71,13 +65,10 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        Skin = T{
-            ['classic'] = 'rectangle',
-        },
+        Skin = T{},
     },
 };
-gSettings = gDefaultSettings:copy(true);
---gSettings = settings.load(gDefaultSettings:copy(true));
+gSettings = settings.load(gDefaultSettings:copy(true));
 
 --Initialize panels..
 local group          = require('timergroup');
@@ -96,4 +87,4 @@ local function UpdateSettings(newSettings)
         entry:UpdateSettings(panelSettings, true);
     end
 end
---settings.register('settings', 'settings_update', UpdateSettings);
+settings.register('settings', 'settings_update', UpdateSettings);

@@ -180,7 +180,7 @@ function TimerGroup:UpdateSettings(newSettings, force)
                 skinName = renderer.DefaultSkin;
                 settings.save();
             end
-            local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', newSettings.Renderer, skinName));
+            local skinPath = GetFilePath(string.format('skins/%s/%s.lua', newSettings.Renderer, skinName));
             local skin = LoadFile_s(skinPath);
             self.TimerRenderer = renderer:New(skin);
             self.TimerRenderer.Settings = {
@@ -197,8 +197,8 @@ function TimerGroup:UpdateSettings(newSettings, force)
         };
         if (type(self.TimerRenderer.LoadSkin) == 'function') and (newSettings.Skin[newSettings.Renderer] ~= self.Settings.Skin) then
             local skinName = newSettings.Skin[newSettings.Renderer];
-            local skinPath = GetFilePath(string.format('renderers/skins/%s/%s.lua', newSettings.Renderer, skinName));
-            local skin = GetFilePath(skinPath);
+            local skinPath = GetFilePath(string.format('skins/%s/%s.lua', newSettings.Renderer, skinName));
+            local skin = LoadFile_s(skinPath);
             self.TimerRenderer:LoadSkin(skin);
         end
     end

@@ -1,17 +1,17 @@
 local settings = T{
     Bar = T{
-        Texture = 'elements/bar_sharp.png',
-        OutlineTexture = 'elements/outline_sharp.png',
+        Texture = 'skins/classic/assets/bar_windower.png',
+        OutlineTexture = 'skins/classic/assets/outline_windower.png',
         Width = 170,
         Height = 16,
         BaseOffsetX = 0,
-        BaseOffsetY = 0,
+        BaseOffsetY = -17,
         NameOffsetX = 6,
         NameOffsetY = 1.5,
         TimerOffsetX = 6,
         TimerOffsetY = 1.5,
         HorizontalSpacing = 0,
-        VerticalSpacing = 17,
+        VerticalSpacing = -17,
     };
     Color = T{
         Blend = true,
@@ -33,7 +33,7 @@ local settings = T{
     };
     ToolTip = T{
         offset_x = 0,
-        offset_y = 0,
+        offset_y = 12,
         font_color = 0xFFFFFFFF,
         font_family = 'Arial',
         font_height = 10,
@@ -47,7 +47,7 @@ local settings = T{
     };
     DragHandle = T{
         offset_x = 0,
-        offset_y = 0,
+        offset_y = -15,
         width = 15,
         height = 15,
         corner_rounding = 2,

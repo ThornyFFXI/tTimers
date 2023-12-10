@@ -1,7 +1,7 @@
 local settings = T{
     Bar = T{
-        Texture = 'elements/bar_rounded.png',
-        OutlineTexture = 'elements/outline_rounded.png',
+        Texture = 'skins/classic/assets/bar_windower.png',
+        OutlineTexture = 'skins/classic/assets/outline_windower.png',
         Width = 170,
         Height = 16,
         BaseOffsetX = 0,
@@ -33,7 +33,7 @@ local settings = T{
     };
     ToolTip = T{
         offset_x = 0,
-        offset_y = 0,
+        offset_y = 12,
         font_color = 0xFFFFFFFF,
         font_family = 'Arial',
         font_height = 10,
