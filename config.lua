@@ -306,8 +306,9 @@ end
 
 function config:Show()
     self.State.IsOpen[1] = true;
-    self:GetRenderers(gPanels.Buff.Settings);
-    self:GetSkins(gPanels.Buff);
+    local selectedPanel = gPanels[panels[self.State.SelectedPanel]];
+    self:GetRenderers(selectedPanel.Settings);
+    self:GetSkins(selectedPanel);
 end
 
 return config;

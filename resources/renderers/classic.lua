@@ -86,6 +86,14 @@ local function D3D_COLOR_BLEND(startColor, endColor, percent)
     end
     return d3d.D3DCOLOR_ARGB(input.A, input.R, input.G, input.B);
 end
+local function UINT_COLOR_TO_ARRAY(color)
+    local out = {};
+    out.A = bit.band(bit.rshift(color, 24), 0xFF);
+    out.R = bit.band(bit.rshift(color, 16), 0xFF);
+    out.G = bit.band(bit.rshift(color, 8), 0xFF);
+    out.B = bit.band(color, 0xFF);
+    return out;
+end
 local function CreateHitBox(x, y, width, height)
     return { MinX=x, MaxX=(x+width), MinY=y, MaxY=(y+height) };
 end
@@ -134,6 +142,10 @@ end
 
 function renderer:LoadSkin(skin)
     self.Skin = skin:copy(true);
+    self.Skin.Color.BG = UINT_COLOR_TO_ARRAY(self.Skin.Color.BG);
+    self.Skin.Color.Low = UINT_COLOR_TO_ARRAY(self.Skin.Color.Low);
+    self.Skin.Color.Middle = UINT_COLOR_TO_ARRAY(self.Skin.Color.Middle);
+    self.Skin.Color.High = UINT_COLOR_TO_ARRAY(self.Skin.Color.High);
     self.Bar = gTextureCache:GetTexture(self.Skin.Bar.Texture);
     self.BarRect = ffi.new('RECT', { 0, 0, self.Bar.Width, self.Bar.Height });
     self.Outline = gTextureCache:GetTexture(self.Skin.Bar.OutlineTexture);

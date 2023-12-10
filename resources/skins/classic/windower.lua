@@ -18,10 +18,10 @@ local settings = T{
         LowThreshold = 10,
         MidThreshold = 30,
         HighThreshold = 60,
-        BG = T{ R=0, G=0, B=0, A=255 },
-        Low = T{ R=255, G=0, B=0, A=255 },
-        Middle = T{ R=255, G=255, B=0, A=255 },
-        High = T{ R=0, G=255, B=0, A=255 },
+        BG = 0xFF000000,
+        Low =0xFFFF0000,
+        Middle = 0xFFFFFF00,
+        High = 0xFF00FF00,
     };
     Label = T{
         font_color = 0xFFFFFFFF,
