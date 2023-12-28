@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
+local durations = require('durations.include');
+
 local tracker = {};
 tracker.State = {
     ActiveTimers = T{};
@@ -29,5 +31,11 @@ tracker.State = {
 function tracker:Tick()
     return self.State.ActiveTimers;
 end
+
+ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', function (e)
+    if (e.id == 0x028) then
+        
+    end
+end);
 
 return tracker;

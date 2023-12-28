@@ -26,10 +26,10 @@ local player = {
     Id = 0,
     Name = 'Unknown',
     Job = {
-        MainJob = 0,
-        MainJobLevel = 0,
-        SubJob = 0,
-        SubJobLevel = 0;
+        Main = 0,
+        MainLevel = 0,
+        Sub = 0,
+        SubLevel = 0;
     },
     MeritCount = {},
     JobPoints = {},
@@ -46,14 +46,24 @@ if playerIndex ~= 0 then
     local entity = AshitaCore:GetMemoryManager():GetEntity();
     local flags = entity:GetRenderFlags0(playerIndex);
     if (bit.band(flags, 0x200) == 0x200) and (bit.band(flags, 0x4000) == 0) then
+        local playMgr = AshitaCore:GetMemoryManager():GetPlayer();
         player.Name = entity:GetName(playerIndex);
         player.Id = entity:GetServerId(playerIndex);
         player.Job = {
-            MainJob = AshitaCore:GetMemoryManager():GetPlayer():GetMainJob(),
-            MainJobLevel = AshitaCore:GetMemoryManager():GetPlayer():GetMainJobLevel(),
-            SubJob = AshitaCore:GetMemoryManager():GetPlayer():GetSubJob(),
-            SubJobLevel = AshitaCore:GetMemoryManager():GetPlayer():GetSubJobLevel(),
+            Main = playMgr:GetMainJob(),
+            MainLevel = playMgr:GetMainLevel(),
+            Sub = playMgr:GetSubJob(),
+            SubLevel = playMgr:GetSubLevel(),
         };
+        player.Buffs = T{};
+        
+        local ids = playMgr:GetStatusIcons();
+        local durations = playMgr:GetStatusTimers();
+        for i = 1,32 do
+            if ids[i] and ids[i] ~= 255 then
+                player.Buffs:append({Id=ids[i], Duration=durations[i]});
+            end
+        end
 
         local pInventory = AshitaCore:GetPointerManager():Get('inventory');
         if (pInventory > 0) then
@@ -102,25 +112,25 @@ ashita.events.register('packet_in', 'duration_lib_data_handleincomingpacket', fu
                 Name = name,
                 MeritCount = {},
                 Job = {
-                    MainJob = job,
-                    MainJobLevel = 0,
-                    SubJob = sub,
-                    SubJobLevel = 0
+                    Main = job,
+                    MainLevel = 0,
+                    Sub = sub,
+                    SubLevel = 0
                 },
                 JobPoints = {},
                 JobPointInit = { Categories = false, Totals = false, Timer = os.clock() + 10 }
             };
         else
-            player.Job.MainJob = job;
-            player.Job.SubJob = sub;
+            player.Job.Main = job;
+            player.Job.Sub = sub;
         end
         equipment = {};
     elseif (e.id == 0x01B) then
         local job = struct.unpack('B', e.data, 0x08 + 1);
         local sub = struct.unpack('B', e.data, 0x0B + 1);
         if (player.Id ~= 0) then
-            player.Job.MainJob = job;
-            player.Job.SubJob = sub;
+            player.Job.Main = job;
+            player.Job.Sub = sub;
         end
     elseif (e.id == 0x50) then
         local slot = struct.unpack('B', e.data, 0x05 + 1);
@@ -141,10 +151,10 @@ ashita.events.register('packet_in', 'duration_lib_data_handleincomingpacket', fu
         local sub = struct.unpack('B', e.data, 0x0E + 1);
         local subLevel = struct.unpack('B', e.data, 0x0F + 1);
         if (player.Id ~= 0) then
-            player.Job.MainJob = job;
-            player.Job.SubJob = sub;
-            player.Job.MainJobLevel = mainLevel;
-            player.Job.SubJobLevel = subLevel;
+            player.Job.Main = job;
+            player.Job.Sub = sub;
+            player.Job.MainLevel = mainLevel;
+            player.Job.SubLevel = subLevel;
         end
     elseif (e.id == 0x63) then
         if struct.unpack('B', e.data, 0x04 + 1) == 5 then
@@ -155,6 +165,15 @@ ashita.events.register('packet_in', 'duration_lib_data_handleincomingpacket', fu
                 player.JobPoints[i].Total = struct.unpack('H', e.data, 0x0C + 0x04 + (6 * i) + 1);
             end
             player.JobPointInit.Totals = true;
+        elseif struct.unpack('B', e.data, 0x04 + 1) == 9 then
+            player.Buffs = T{};
+            for i = 1,32 do
+                local id = struct.unpack('H', e.data, 0x06 + (i * 2) + 1);
+                local duration = struct.unpack('L', e.data, 0x44 + (i * 4) + 1);
+                if id ~= 0xFF then
+                    player.Buffs:append({Id=id, Duration=duration});
+                end
+            end
         end
     elseif (e.id == 0x08C) then
         local meritNum = struct.unpack('B', e.data, 0x04 + 1);
@@ -190,7 +209,7 @@ ashita.events.register('packet_out', 'duration_lib_data_handleoutgoingpacket', f
     end
     
     local playMgr = AshitaCore:GetMemoryManager():GetPlayer();
-    if (e.id == 0x15) and (playMgr:HasKeyItem(2544)) and (playMgr:GetMainJobLevel() == 99) then
+    if (e.id == 0x15) and (playMgr:HasKeyItem(2544)) and (playMgr:GetMainLevel() == 99) then
         if (os.clock() > player.JobPointInit.Timer) then
             if (player.JobPointInit.Totals == false) then
                 local packet = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -246,11 +265,30 @@ end
 
 local exports = {};
 
+function exports:GetBuffActive(id)
+    for _,entry in ipairs(player.Buffs) do
+        if (entry.Id == id) then
+            return true;
+        end
+    end
+    return false;
+end
+
+function exports:GetBuffCount(id)
+    local count = 0;
+    for _,entry in ipairs(player.Buffs) do
+        if (entry.Id == id) then
+            count = count + 1;
+        end
+    end
+    return count;
+end
+
 function exports:EquipSum(values)
     UpdateEquippedSet();
     local total = 0;
     for _,equipPiece in ipairs(equippedSet) do
-        if (equipPiece ~= nil) and (player.Job.MainJobLevel >= equipPiece.Resource.Level) then
+        if (equipPiece ~= nil) and (player.Job.MainLevel >= equipPiece.Resource.Level) then
             local value = values[equipPiece.Id];
             if value ~= nil then
                 total = total + value;
@@ -272,6 +310,10 @@ function exports:GetMeritCount(meritId)
     else
         return count;
     end
+end
+
+function exports:GetPlayerId()
+    return player.Id;
 end
 
 function exports:GetJobData()
@@ -311,9 +353,14 @@ function exports:GetJobPointTotal(job)
     end
 end
 
+function exports:IsNotoriousMonster(id)
+    --Possible, but probably too tedious.
+    return false;
+end
+
 function exports:ParseAugments()
     UpdateEquippedSet();
-    return augments:Parse(player.Job.MainJobLevel, equippedSet);
+    return augments:Parse(player.Job.MainLevel, equippedSet);
 end
 
 return exports;

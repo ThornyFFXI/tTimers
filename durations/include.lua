@@ -31,17 +31,19 @@ local weaponSkillCalculators = {};
 
 do
     local calculators = T{
+        { file='enfeebling.lua', buffer=spellCalculators },
+        { file='enhancing.lua', buffer=spellCalculators },
+        --[[
         { file='abilities.lua', buffer=abilityCalculators },
         { file='bluemagic.lua', buffer=spellCalculators },
         { file='dark.lua', buffer=spellCalculators },
-        { file='enfeebling.lua', buffer=spellCalculators },
-        { file='enhancing.lua', buffer=spellCalculators },
         { file='geomancy.lua', buffer=spellCalculators },
         { file='incidental.lua', buffer=spellCalculators },
         { file='miscspells.lua', buffer=spellCalculators },
         { file='ninjutsu.lua', buffer=spellCalculators },
         { file='songs.lua', buffer=spellCalculators },
         { file='weaponskills.lua', buffer=weaponSkillCalculators },
+        ]]--
     }
     for _,calculator in ipairs(calculators) do
         dofile(string.gsub(thisFile, 'include.lua', calculator.file))(dataTracker, calculator.buffer);
