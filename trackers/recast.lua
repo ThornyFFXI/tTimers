@@ -1,3 +1,25 @@
+--[[
+Copyright (c) 2024 Thorny
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+--]]
+
 local AbilityRecastPointer = ashita.memory.find('FFXiMain.dll', 0, '894124E9????????8B46??6A006A00508BCEE8', 0x19, 0);
 AbilityRecastPointer = ashita.memory.read_uint32(AbilityRecastPointer);
 
@@ -335,7 +357,7 @@ function tracker:Tick()
     return state.ActiveTimers;
 end
 
-function tracker:HandleIncomingPacket(e)
+ashita.events.register('packet_in', 'recast_tracker_handleincomingpacket', function (e)
     if (e.id == 0x00A) then
         update_job(struct.unpack('B', e.data, 0xB4 + 1));
     elseif (e.id == 0x01B) then
@@ -357,7 +379,7 @@ function tracker:HandleIncomingPacket(e)
             end
         end
     end
-end
+end);
 
 tracker:Initialize();
 return tracker;
