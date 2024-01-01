@@ -50,6 +50,8 @@ SOFTWARE.
 
     Settings
         Countdown (boolean) - If true, the timer should progress from full to empty, if false it should progress from empty to full.
+        ReverseColors (boolean) - If true, any themed colors based on duration should be reversed.
+            -This is to configure for the idea that a buff/debuff being at a low timer is bad, while a recast being low is good.
         Scale (number) - Size multiplier, where 1 is the default size.
         ShowTenths (boolean) - If true, show a decimal place for partial seconds on timers with less than 1 minute remaining.
 
@@ -142,15 +144,16 @@ renderer.DefaultSkin = 'windower';
 --[[
     Internal function.  Not required.
 ]]--
-function renderer:New(skin)
+function renderer:New(skin, settings)
     local o = {};
     setmetatable(o, self);
     self.__index = self;
     o.HitBoxes = T{};
     o.Settings = {
-        CountDown = true,
-        Scale = 1,
-        ShowTenths = true,
+        CountDown = settings.CountDown,
+        ReverseColors = settings.ReverseColors,
+        Scale = settings.Scale,
+        ShowTenths = settings.ShowTenths,
     };
     o.Sprite = ffi.new('ID3DXSprite*[1]');
     if (ffi.C.D3DXCreateSprite(d3d.get_device(), o.Sprite) == ffi.C.S_OK) then
@@ -166,11 +169,19 @@ end
 function renderer:LoadSkin(skin)
     self.Skin = skin:copy(true);
     self.Skin.Color.BG = UINT_COLOR_TO_ARRAY(self.Skin.Color.BG);
-    self.Skin.Color.Low = UINT_COLOR_TO_ARRAY(self.Skin.Color.Low);
-    self.Skin.Color.Middle = UINT_COLOR_TO_ARRAY(self.Skin.Color.Middle);
-    self.Skin.Color.High = UINT_COLOR_TO_ARRAY(self.Skin.Color.High);
+    if (self.Settings.ReverseColors) then
+        local high = self.Skin.Color.High;
+        self.Skin.Color.High = UINT_COLOR_TO_ARRAY(self.Skin.Color.Low);
+        self.Skin.Color.Middle = UINT_COLOR_TO_ARRAY(self.Skin.Color.Middle);
+        self.Skin.Color.Low = UINT_COLOR_TO_ARRAY(high);
+    else
+        self.Skin.Color.Low = UINT_COLOR_TO_ARRAY(self.Skin.Color.Low);
+        self.Skin.Color.Middle = UINT_COLOR_TO_ARRAY(self.Skin.Color.Middle);
+        self.Skin.Color.High = UINT_COLOR_TO_ARRAY(self.Skin.Color.High);
+    end
     self.Bar = gTextureCache:GetTexture(self.Skin.Bar.Texture);
     self.BarRect = ffi.new('RECT', { 0, 0, self.Bar.Width, self.Bar.Height });
+    self.IconRect = ffi.new('RECT', { 0, 0, 0, 0 });
     self.Outline = gTextureCache:GetTexture(self.Skin.Bar.OutlineTexture);
     self.OutlineRect = ffi.new('RECT', { 0, 0, self.Outline.Width, self.Outline.Height });
     self.Drag = gdi:create_rect(self.Skin.DragHandle, true);
@@ -303,6 +314,20 @@ function renderer:DrawTimers(position, renderDataContainer)
                 vec_scale.x = (barLayout.Width / self.Bar.Width) * scale;
                 vec_scale.y = (barLayout.Height / self.Bar.Height) * scale;
                 sprite:Draw(self.Bar.Texture, self.BarRect, vec_scale, nil, 0.0, vec_position, color);
+            end
+        end
+
+        if (renderData.Icon ~= nil) then
+            local icon = self.Skin.Icon;
+            local tx = gTextureCache:GetTexture(renderData.Icon);
+            if tx then
+                self.IconRect.right = tx.Width;
+                self.IconRect.bottom = tx.Height;
+                vec_scale.x = (icon.Width * scale) / tx.Width;
+                vec_scale.y = (icon.Height * scale) / tx.Height;
+                vec_position.x = position.X + (icon.OffsetX * scale);
+                vec_position.y = position.Y + (icon.OffsetY * scale);
+                sprite:Draw(tx.Texture, self.IconRect, vec_scale, nil, 0.0, vec_position, d3dwhite);
             end
         end
 

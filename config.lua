@@ -246,6 +246,14 @@ function config:Render()
                     end
                     imgui.ShowHelp('When enabled, timers will begin full and count down to 0.');
                     
+                    buffer = { panelSettings.ReverseColors };
+                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Reverse Colors', 'ReverseColors'), buffer)) then
+                        panelSettings.ReverseColors = buffer[1];
+                        panel:UpdateSettings(panelSettings);
+                        settings.save();
+                    end
+                    imgui.ShowHelp('When enabled, high and low colors are flipped.');
+                    
                     
                     buffer = { panelSettings.ShowTenths };
                     if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Tenths', 'ShowTenths'), buffer)) then

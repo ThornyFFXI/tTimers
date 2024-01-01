@@ -24,11 +24,11 @@ local settings = T{
     Bar = T{
         Texture = 'skins/classic/assets/bar_wow.png',
         OutlineTexture = 'skins/classic/assets/outline_wow.png',
-        Width = 170,
+        Width = 210,
         Height = 16,
         BaseOffsetX = 0,
         BaseOffsetY = -17,
-        NameOffsetX = 6,
+        NameOffsetX = 18,
         NameOffsetY = 0.5,
         TimerOffsetX = 6,
         TimerOffsetY = 0.5,
@@ -44,6 +44,12 @@ local settings = T{
         Low = 0xFFA26E00,
         Middle = 0xFFA26E00,
         High = 0xFFA26E00,
+    };
+    Icon = T{
+        OffsetX = 0,
+        OffsetY = 0,
+        Width = 16,
+        Height = 16,
     };
     Label = T{
         font_color = 0xFFFFFFFF,

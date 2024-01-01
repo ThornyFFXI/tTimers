@@ -128,6 +128,7 @@ function TimerGroup:Render(timers)
             end
             
             if (renderData.Duration > 0) or (renderData.Complete) then
+                renderData.Icon = timerData.Icon;
                 renderData.Local = timerData.Local;
                 renderData.Label = timerData.Label;
                 renderData.Tooltip = timerData.Tooltip;
@@ -204,16 +205,12 @@ function TimerGroup:UpdateSettings(newSettings, force)
             end
             local skinPath = GetFilePath(string.format('skins/%s/%s.lua', newSettings.Renderer, skinName));
             local skin = LoadFile_s(skinPath);
-            self.TimerRenderer = renderer:New(skin);
-            self.TimerRenderer.Settings = {
-                CountDown = newSettings.CountDown,
-                Scale = newSettings.Scale,
-                ShowTenths = newSettings.ShowTenths,
-            };
+            self.TimerRenderer = renderer:New(skin, newSettings);
         end
     elseif (self.TimerRenderer ~= nil) then
         self.TimerRenderer.Settings = {
             CountDown = newSettings.CountDown,
+            ReverseColors = newSettings.ReverseColors,
             Scale = newSettings.Scale,
             ShowTenths = newSettings.ShowTenths,
         };

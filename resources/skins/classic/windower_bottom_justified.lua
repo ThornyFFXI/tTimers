@@ -24,11 +24,11 @@ local settings = T{
     Bar = T{
         Texture = 'skins/classic/assets/bar_windower.png',
         OutlineTexture = 'skins/classic/assets/outline_windower.png',
-        Width = 170,
+        Width = 210,
         Height = 16,
         BaseOffsetX = 0,
         BaseOffsetY = -17,
-        NameOffsetX = 6,
+        NameOffsetX = 18,
         NameOffsetY = 1.5,
         TimerOffsetX = 6,
         TimerOffsetY = 1.5,
@@ -44,6 +44,12 @@ local settings = T{
         Low = 0xFFFF0000,
         Middle = 0xFFFFFF00,
         High = 0xFF00FF00,
+    };
+    Icon = T{
+        OffsetX = 0,
+        OffsetY = 0,
+        Width = 16,
+        Height = 16,
     };
     Label = T{
         font_color = 0xFFFFFFFF,
