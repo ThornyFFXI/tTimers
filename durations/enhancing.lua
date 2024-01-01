@@ -125,7 +125,7 @@ end
 
 local function ApplyEnhancingMultipliers(duration, augments)
     local enhancingGear = 1.0 + dataTracker:EquipSum(enhancingDuration);
-    local enhancingAugments = 1.0 + augments.EnhancingDuration;
+    local enhancingAugments = 1.0 + (augments.EnhancingDuration or 0);
     return duration * enhancingGear * enhancingAugments;
 end
 
@@ -165,7 +165,7 @@ local function ApplyReceivedModifiers(duration, augments)
         end
     end
 
-    enhancingReceived = enhancingReceived + augments.EnhancingReceived;
+    enhancingReceived = enhancingReceived + (augments.EnhancingReceived or 0);
 
     if (job.Main == 22) and (job.MainLevel == 99) then
         local jobPoints = dataTracker:GetJobPointTotal(22);
@@ -195,7 +195,7 @@ end
 
 local function CalculateBarelementDuration(targetId)
     local duration = 480;
-    local enhancingSkill = gData.GetCombatSkill(34);
+    local enhancingSkill = AshitaCore:GetMemoryManager():GetPlayer():GetCombatSkill(34):GetSkill();
     if (enhancingSkill < 240) then
         duration = enhancingSkill * 2;
     end    
@@ -204,7 +204,7 @@ end
 
 local function CalculateBarstatusDuration(targetId)
     local duration = 480;
-    local enhancingSkill = gData.GetCombatSkill(34);
+    local enhancingSkill = AshitaCore:GetMemoryManager():GetPlayer():GetCombatSkill(34):GetSkill();
     if (enhancingSkill < 240) then
         duration = enhancingSkill * 2;
     end
@@ -862,7 +862,8 @@ local function Initialize(tracker, buffer)
 
     --Haste II
     buffer[511] = function(targetId)
-        return CalculateEnhancingDuration(180, targetId), 33;
+        return math.random(15, 45), 33;
+        --return CalculateEnhancingDuration(180, targetId), 33;
     end
 
     --Foil

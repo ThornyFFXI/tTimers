@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local augments = dofile(string.gsub(debug.getinfo(2, "S").source:sub(2), 'data.lua', 'augments.lua'));
+local augments = dofile(string.gsub(debug.getinfo(1, "S").source:sub(2), 'data.lua', 'augments.lua'));
 local equipment = {};
 local player = {
     Id = 0,
@@ -51,9 +51,9 @@ if playerIndex ~= 0 then
         player.Id = entity:GetServerId(playerIndex);
         player.Job = {
             Main = playMgr:GetMainJob(),
-            MainLevel = playMgr:GetMainLevel(),
+            MainLevel = playMgr:GetMainJobLevel(),
             Sub = playMgr:GetSubJob(),
-            SubLevel = playMgr:GetSubLevel(),
+            SubLevel = playMgr:GetSubJobLevel(),
         };
         player.Buffs = T{};
         
@@ -95,6 +95,7 @@ if playerIndex ~= 0 then
                     Index = index;
                 };
             end
+            equipment.Changed = true;
         end
     end
 end
@@ -209,7 +210,7 @@ ashita.events.register('packet_out', 'duration_lib_data_handleoutgoingpacket', f
     end
     
     local playMgr = AshitaCore:GetMemoryManager():GetPlayer();
-    if (e.id == 0x15) and (playMgr:HasKeyItem(2544)) and (playMgr:GetMainLevel() == 99) then
+    if (e.id == 0x15) and (playMgr:HasKeyItem(2544)) and (playMgr:GetMainJobLevel() == 99) then
         if (os.clock() > player.JobPointInit.Timer) then
             if (player.JobPointInit.Totals == false) then
                 local packet = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };

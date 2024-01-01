@@ -380,13 +380,13 @@ local generalAugments = {
 
 local function AddRankAugments(buffer, augData, item)
     local itemTable = item.Extra:totable();
-    local path = ashita.bits.unpack_be(itemTable, 16, 2);
+    local path = ashita.bits.unpack_be(itemTable, 32, 2);
     local pathValues = augData[path];
     if pathValues then
-        local rank = ashita.bits.unpack_be(itemTable, 18, 4);
+        local rank = ashita.bits.unpack_be(itemTable, 50, 5);
         local rankValue = pathValues[rank];
         if rankValue then
-            for _,augment in ipairs(rank) do
+            for _,augment in ipairs(rankValue) do
                 if (buffer[augment.Stat] == nil) then buffer[augment.Stat] = 0; end
                 buffer[augment.Stat] = buffer[augment.Stat] + augment.Value;
             end
@@ -432,7 +432,7 @@ end
 
 local augments = {};
 
-function augments:parse(playerLevel, equipSet)
+function augments:Parse(playerLevel, equipSet)
     local result = {};
     result.Generic = {};
     

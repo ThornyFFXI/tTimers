@@ -72,7 +72,7 @@ function TimerGroup:HandleMouse(e)
         if (self.Settings.ShiftCancel) and (IsShiftPressed()) then
             local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
             if renderData then
-                renderData.Delete = true;
+                renderData.Local.Delete = true;
                 e.blocked = true;
                 self.MouseBlocked = true;
                 return;
@@ -97,13 +97,13 @@ end
 
     Data can optionally contain:
     Tooltip [string]
+    Icon [string]
 ]]--
 function TimerGroup:Render(timers)
-    local time = os.clock();
     for _, timerData in ipairs(timers) do
         if (timerData.Duration <= 0) then
             if ((timerData.Duration * -1) > self.Settings.CompletionDuration) then
-                timerData.Delete = true;
+                timerData.Local.Delete = true;
             end
         end
     end
@@ -114,7 +114,7 @@ function TimerGroup:Render(timers)
 
     local renderDataContainer = T {};
     for _, timerData in ipairs(timers) do
-        if (timerData.Delete ~= true) then
+        if (timerData.Local.Delete ~= true) then
             local renderData = {};
             renderData.Creation = timerData.Creation;
             renderData.Duration = timerData.Duration;

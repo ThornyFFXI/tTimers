@@ -20,21 +20,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local tracker = {};
-tracker.State = {
-    ActiveTimers = T{};
-    Reset = 0,
-};
+local function FillSpellTable(spellTable)
+    --Reraise
+    spellTable[135] = function(targetId)
+        return 3600;
+    end
+    
+    --Reraise II
+    spellTable[141] = function(targetId)
+        return 3600;
+    end
+    
+    --Reraise III
+    spellTable[142] = function(targetId)
+        return 3600;
+    end
 
-function tracker:AddTimer(timer)
-    self.State.ActiveTimers:append(timer);
+    --Enlight
+    spellTable[310] = function(targetId)
+        return 180;
+    end
+    
+    --Reraise IV
+    spellTable[848] = function(targetId)
+        return 3600;
+    end
+    
+    --Enlight II
+    spellTable[855] = function(targetId)
+        return 180;
+    end
+
 end
 
-function tracker:Tick()
-    local time = os.clock();
-    self.State.ActiveTimers = self.State.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
-    self.State.ActiveTimers:each(function(a) a.Duration = a.Expiration - time; end);
-    return self.State.ActiveTimers;
-end
-
-return tracker;
+return FillSpellTable;

@@ -89,6 +89,8 @@ gDefaultSettings = T{
         UseTooltips = true;
         Skin = T{},
     },
+
+    SplitBuffsByDuration = true,
 };
 gSettings = settings.load(gDefaultSettings:copy(true));
 

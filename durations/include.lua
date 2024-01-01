@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
-local thisFile = debug.getinfo(2, "S").source:sub(2);
+local thisFile = debug.getinfo(1, "S").source:sub(2);
 local dataTracker = dofile(string.gsub(thisFile, 'include.lua', 'data.lua'));
 
 local abilityCalculators = {};
@@ -52,6 +52,10 @@ end
 
 local exports = {};
 
+function exports:GetDataTracker()
+    return dataTracker;
+end
+
 function exports:GetAbilityDuration(actionId, targetId)
     local calculator = abilityCalculators[actionId];
     if calculator ~= nil then
@@ -70,7 +74,7 @@ function exports:GetMobAbilityDuration(actionId, targetId)
     end
 end
 
-function exports.GetPetAbilityDuration(actionId, targetId)
+function exports:GetPetAbilityDuration(actionId, targetId)
     local calculator = petAbilityCalculators[actionId];
     if calculator ~= nil then
         return calculator(targetId);
@@ -79,7 +83,7 @@ function exports.GetPetAbilityDuration(actionId, targetId)
     end
 end
 
-function exports.GetSpellDuration(actionId, targetId)
+function exports:GetSpellDuration(actionId, targetId)
     local calculator = spellCalculators[actionId];
     if calculator ~= nil then
         return calculator(targetId);
@@ -88,7 +92,7 @@ function exports.GetSpellDuration(actionId, targetId)
     end
 end
 
-function exports.GetWeaponskillDuration(actionId, targetId)
+function exports:GetWeaponskillDuration(actionId, targetId)
     local calculator = weaponSkillCalculators[actionId];
     if calculator ~= nil then
         return calculator(targetId);

@@ -53,7 +53,7 @@ function tracker:Tick(panelName)
         panelState[panelName] = state;
     end
 
-    state.ActiveTimers = state.ActiveTimers:filteri(function(a) return (a.Delete ~= true) end);
+    state.ActiveTimers = state.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
     state.ActiveTimers:each(function(a) a.Duration = a.Expiration - time; end);
     return state.ActiveTimers;
 end

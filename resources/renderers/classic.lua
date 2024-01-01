@@ -68,6 +68,7 @@ SOFTWARE.
         Local (table) - Table tied to the timer object for storing things that may need garbage collection.
             Delete (true or nil) - Reserved value.  If set to true, the timer will be removed next frame.
         Percent (number) - Percent of display to be shown, in range 0-1.
+        Icon (string) - Icon to draw.
         Tooltip (string) - Text to draw tooltip.
 
     
