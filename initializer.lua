@@ -40,6 +40,10 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        SpellIconList = T{},
+        AbilityIconList = T{},
+        WeaponSkillIconList = T{},
+        SplitBuffsByDuration = true,
         Skin = T{},
     },
     
@@ -93,8 +97,6 @@ gDefaultSettings = T{
         UseTooltips = true;
         Skin = T{},
     },
-
-    SplitBuffsByDuration = true,
 };
 gSettings = settings.load(gDefaultSettings:copy(true));
 

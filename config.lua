@@ -313,8 +313,8 @@ function config:Render()
                 end
                 
                 if imgui.BeginTabItem('Buffs##tTimersConfigBuffsTab') then
-                    if (imgui.Checkbox(string.format('Split By Duration##tTimersConfigBuffs_SplitByDuration', 'Enabled', 'Enabled'), { gSettings.SplitBuffsByDuration })) then
-                        gSettings.SplitBuffsByDuration = not gSettings.SplitBuffsByDuration;
+                    if (imgui.Checkbox(string.format('Split By Duration##tTimersConfigBuffs_SplitByDuration', 'Enabled', 'Enabled'), { gSettings.Buff.SplitBuffsByDuration })) then
+                        gSettings.Buff.SplitBuffsByDuration = not gSettings.Buff.SplitBuffsByDuration;
                         settings.save();
                     end
                     imgui.ShowHelp('If enabled, the same spell will show up multiple times for each different duration.');

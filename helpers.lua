@@ -43,8 +43,6 @@ function GetFilePath(path)
             return potentialPath;
         end
     end
-
-    return nil;
 end
 
 function GetImagePath(image, default)

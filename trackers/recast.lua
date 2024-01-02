@@ -22,6 +22,7 @@ SOFTWARE.
 
 local AbilityRecastPointer = ashita.memory.find('FFXiMain.dll', 0, '894124E9????????8B46??6A006A00508BCEE8', 0x19, 0);
 AbilityRecastPointer = ashita.memory.read_uint32(AbilityRecastPointer);
+local encoding = require('gdifonts.encoding');
 
 local abilityBlocks = T{
     92, --Second entry for rune enchantment..?
@@ -31,6 +32,60 @@ local overrides = {
     [10] = 'Rune Enchantment',
     [254] = 'Secondary One-Hour',
 };
+local mainJob = 0;
+
+local function GetAbilityIcon(id)
+    local paths = T{
+        string.format('abilities/%u_%u.png', id, mainJob),
+        string.format('abilities/%u.png', id),
+        'abilities/default.png',
+    };
+    
+    for _,path in ipairs(paths) do
+        if GetFilePath(path) then
+            return path;
+        end
+    end
+end
+
+local function GetSpellIcon(id)
+    local paths = T{
+        string.format('spells/%u.png', id),
+        'spells/default.png',
+    };
+    
+    for _,path in ipairs(paths) do
+        if GetFilePath(path) then
+            return path;
+        end
+    end
+end
+
+local function GetAbilityLabel(id)
+    local override = overrides[id];
+    if override then
+        local res = AshitaCore:GetResourceManager():GetAbilityByName(override, 2);
+        if res then
+            return encoding:ShiftJIS_To_UTF8(res.Name[1], true);
+        end
+        return override;
+    end
+
+    local resMgr = AshitaCore:GetResourceManager();
+    local res = resMgr:GetAbilityByTimerId(id);
+    if res then
+        return encoding:ShiftJIS_To_UTF8(res.Name[1], true);
+    end
+    
+    for x = 0x200,0x6FF do
+        res = resMgr:GetAbilityById(x);
+        if (res) and (res.RecastTimerId == id) then
+            return encoding:ShiftJIS_To_UTF8(res.Name[1], true);
+        end
+    end
+
+    return string.format('Unknown Ability [%u]', id);
+end
 
 local function update_job(job)
     local primary = {
@@ -83,6 +138,7 @@ local function update_job(job)
     };
     overrides[0] = primary[job] or 'Primary One-Hour';
     overrides[254] = secondary[job] or 'Secondary One-Hour';
+    mainJob = job;
 end
 
 local function get_ready_data(index)
@@ -147,8 +203,9 @@ function tracker:Initialize()
         local timer = mmRecast:GetSpellTimer(x);
         if (timer > 0) then
             local res = resMgr:GetSpellById(x);
-            local label = res and res.Name[1] or string.format('Unknown Spell [%u]', x);
+            local label = res and encoding:ShiftJIS_To_UTF8(res.Name[1], true) or string.format('Unknown Spell [%u]', x);
             state.SpellTimers[x] = {
+                Icon  = GetSpellIcon(x),
                 Label = label,
             };
         end
@@ -156,28 +213,6 @@ function tracker:Initialize()
     
     state.AbilityTimers = T{};
     update_job(AshitaCore:GetMemoryManager():GetPlayer():GetMainJob());
-end
-
-local function GetAbilityLabel(id)
-    local override = overrides[id];
-    if override then
-        return override;
-    end
-
-    local resMgr = AshitaCore:GetResourceManager();
-    local res = resMgr:GetAbilityByTimerId(id);
-    if res then
-        return res.Name[1];
-    end
-    
-    for x = 0x200,0x6FF do
-        res = resMgr:GetAbilityById(x);
-        if (res) and (res.RecastTimerId == id) then
-            return res.Name[1];
-        end
-    end
-
-    return string.format('Unknown Ability [%u]', id);
 end
 
 function tracker:UpdateAbilities()
@@ -198,6 +233,7 @@ function tracker:UpdateAbilities()
                 ability = {
                     Creation = time;
                     Duration = duration,
+                    Icon = GetAbilityIcon(id),
                     TotalDuration = duration,
                     Label = GetAbilityLabel(id),
                     Local = {},
@@ -231,7 +267,7 @@ function tracker:UpdateAbilities()
 
             -- Determine the name to be displayed..
             if (x == 0) then
-                ability.Label = overrides[0];
+                ability.Label = GetAbilityLabel(0);
             elseif (id == 102) then
                 local baseRecast, chargeValue = get_ready_data(x);
                 local charges = math.floor((baseRecast - duration) / chargeValue);
@@ -278,7 +314,7 @@ function tracker:UpdateAbilities()
                 end
                 ability.TotalDuration = chargeValue;
             elseif (id == 254) then
-                ability.Label = overrides[254];
+                ability.Label = GetAbilityLabel(254);
             end
         end
     end
@@ -374,6 +410,7 @@ ashita.events.register('packet_in', 'recast_tracker_handleincomingpacket', funct
                 local res = AshitaCore:GetResourceManager():GetSpellById(actionId);
                 local label = res and res.Name[1] or string.format('Unknown Spell [%u]', actionId);
                 state.SpellTimers[actionId] = {
+                    Icon  = GetSpellIcon(actionId),
                     Label = label,
                 };
             end

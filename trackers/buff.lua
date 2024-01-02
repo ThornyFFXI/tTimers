@@ -22,6 +22,7 @@ SOFTWARE.
 
 --Libs
 local durations = require('durations.include');
+local encoding = require('gdifonts.encoding');
 local action = require('actionpacket');
 local buffFlags = require('buffflags');
 
@@ -100,20 +101,26 @@ end
 
 -- Determine the texture to be used for a given action.
 local function GetActionIcon(actionResource, buffId)
-    local path;
+    local target;
     if (actionResource.Index) then
-        path = GetFilePath(string.format('spells/%u.png', actionResource.Index));
+        if (gSettings.Buff.SpellIconList:contains(actionResource.Index)) then
+            target = string.format('spells/%u.png', actionResource.Index);
+        end
     elseif (actionResource.Id < 512) then
-        path = GetFilePath(string.format('weaponskills/%u.png', actionResource.Id));
-    else
-        path = GetFilePath(string.format('abilities/%u.png', actionResource.Id - 512));
+        if (gSettings.Buff.WeaponskillIconList:contains(actionResource.Id)) then
+            target = string.format('weaponskills/%u.png', actionResource.Id);
+        end
+    elseif (gSettings.Buff.AbilityIconList:contains(actionResource.RecastTimerId)) then
+        target = string.format('abilities/%u_%u.png', actionResource.RecastTimerId, durations:GetDataTracker():GetJobData().MainJob);
+        if not GetFilePath(target) then
+            target = string.format('abilities/%u.png', actionResource.RecastTimerId);            
+        end
     end
 
-    if path then
-        return path;
-    else
-        return string.format('STATUS:%u', buffId);
+    if (target == nil) or (not GetFilePath(target)) then
+        target = string.format('STATUS:%u', buffId);
     end
+    return target;
 end
 
 local function IdToName(id)
@@ -451,9 +458,9 @@ local function CreateTimer(buffData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
     timerData.Icon = buffData.Icon;
     if (count > 1) then
-        timerData.Label = string.format('%s[%s+%u]', buffData.Resource.Name[1], shortest.Name, (count - 1));
+        timerData.Label = string.format('%s[%s+%u]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), shortest.Name, (count - 1));
     else
-        timerData.Label = string.format('%s[%s]', buffData.Resource.Name[1], shortest.Name);
+        timerData.Label = string.format('%s[%s]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), shortest.Name);
     end
     timerData.Local = {};
     timerData.Players = playerArray;
@@ -475,7 +482,7 @@ local function CreateSplitTimers(buffData)
             targetTimer = {
                 Resource = buffData.Resource,
                 BuffId = buffData.BuffId,
-                Texture = buffData.Icon,
+                Icon = buffData.Icon,
                 Expiration = target.Expiration,
                 Targets = {},
             };
@@ -518,8 +525,8 @@ local lastSetting;
 function exports:Tick()
     ClearDeletedTimers();
 
-    if (rebuildTimers) or (gSettings.SplitBuffsByDuration ~= lastSetting) then
-        lastSetting = gSettings.SplitBuffsByDuration;
+    if (rebuildTimers) or (gSettings.Buff.SplitBuffsByDuration ~= lastSetting) then
+        lastSetting = gSettings.Buff.SplitBuffsByDuration;
         RebuildTimers(lastSetting);
         rebuildTimers = false;
     else
