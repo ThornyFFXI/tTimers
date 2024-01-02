@@ -441,11 +441,14 @@ local function CreateTimer(buffData)
     end);
 
 
-    local toolTipText = '';
-    for _,entry in ipairs(playerArray) do
-        local timeRemaining = math.max(entry.Expiration - os.clock(), 0);
-        local newLine = string.format('%s%-20s %s', (toolTipText == '') and '' or '\n', entry.Name, TimeToString(timeRemaining));
-        toolTipText = toolTipText .. newLine;
+    local toolTipText;
+    if (playerArray[2]) then
+        toolTipText = '';
+        for _,entry in ipairs(playerArray) do
+            local timeRemaining = math.max(entry.Expiration - os.clock(), 0);
+            local newLine = string.format('%s%-20s %s', (toolTipText == '') and '' or '\n', entry.Name, TimeToString(timeRemaining));
+            toolTipText = toolTipText .. newLine;
+        end
     end
 
     local count = #playerArray;
@@ -510,13 +513,17 @@ end
 
 local function UpdateTimer(timerData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
-    local toolTipText = '';
-    for _,entry in ipairs(timerData.Players) do
-        local timeRemaining = math.max(entry.Expiration - os.clock(), 0);
-        local newLine = string.format('%s%-20s %s', (toolTipText == '') and '' or '\n', entry.Name, TimeToString(timeRemaining));
-        toolTipText = toolTipText .. newLine;
+    if (timerData.Players[2]) then
+        local toolTipText = '';
+        for _,entry in ipairs(timerData.Players) do
+            local timeRemaining = math.max(entry.Expiration - os.clock(), 0);
+            local newLine = string.format('%s%-20s %s', (toolTipText == '') and '' or '\n', entry.Name, TimeToString(timeRemaining));
+            toolTipText = toolTipText .. newLine;
+        end
+        timerData.Tooltip = toolTipText;
+    else
+        timerData.Tooltip = nil;
     end
-    timerData.Tooltip = toolTipText;
 end
 
 local exports = {};
