@@ -21,7 +21,7 @@ SOFTWARE.
 --]]
 
 local function FillWeaponskillTable(weaponSkillTable)
---Wasp Sting
+    --Wasp Sting
 	weaponSkillTable[16] = function(targetId)
 		local tp = gData.GetWeaponskillCost();
         if (tp < 2000) then

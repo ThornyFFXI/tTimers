@@ -49,7 +49,7 @@ local refreshReceived = {
 };
 
 local function ApplyDiffusion(duration)
-    if (gData.GetBuffActive(356)) then
+    if (dataTracker:GetBuffActive(356)) then
         local augments = gData.ParseAugments();
         local merits = gData.GetMeritCount(0x0BC2);
         local multiplier = 1 + ((merits - 1) * 0.05);
@@ -65,8 +65,8 @@ local function CalculateBlueMagicDuration(duration, diffusion, unbridled)
     if (diffusion) then
         duration = ApplyDiffusion(duration);
     end
-    if unbridled and gData.GetMainJob() == 16 and gData.GetMainJobLevel() == 99 then
-        duration = duration * (1 + (gData.GetJobPoints(16, 7) / 100));
+    if unbridled and dataTracker:GetJobData().Main == 16 and dataTracker:GetJobData().MainLevel == 99 then
+        duration = duration * (1 + (dataTracker:GetJobPointCount(16, 7) / 100));
     end
     return duration;
 end

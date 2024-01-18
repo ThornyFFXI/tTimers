@@ -1876,7 +1876,7 @@ local function Initialize(tracker, buffer)
 
     --Crag Throw
     buffer[570] = function(targetId)
-        return 120;
+        return 120, 13;
     end
 
     --[[UNKNOWN
@@ -1895,93 +1895,93 @@ local function Initialize(tracker, buffer)
 
     --Tidal Roar
     buffer[585] = function(targetId)
-        return 90;
+        return 90, 147;
     end
 
     --Soothing Current
     buffer[586] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 586;
     end
 
     --Hastega
     buffer[595] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 33;
     end
 
     --Aerial Armor
     buffer[596] = function(targetId)
-        return 900;
+        return 900, 36;
     end
 
     --Fleet Wind
     buffer[601] = function(targetId)
-        return CalculateBloodPactDuration(120);
+        return CalculateBloodPactDuration(120), 176;
     end
 
     --Hastega II
     buffer[602] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 33;
     end
 
     --Frost Armor
     buffer[610] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 35;
     end
 
     --Sleepga
     buffer[611] = function(targetId)
-        return 90;
+        return 90, 2;
     end
 
     --Diamond Storm
     buffer[617] = function(targetId)
-        return 180;
+        return 180, 148;
     end
 
     --Crystal Blessing
     buffer[618] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 587;
     end
 
     --Rolling Thunder
     buffer[626] = function(targetId)
-        return CalculateBloodPactDuration(120);
+        return CalculateBloodPactDuration(120), 98;
     end
 
     --Lightning Armor
     buffer[628] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 38;
     end
 
     --Shock Squall
     buffer[633] = function(targetId)
-        return 15;
+        return 15, 10;
     end
 
     --Volt Strike
     buffer[634] = function(targetId)
-        return 15;
+        return 15, 10;
     end
 
     --Nightmare
     buffer[658] = function(targetId)
-        return 90;
+        return 90, 2;
     end
     
     --Noctoshield
     buffer[660] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 116;
     end
 
     --Dream Shroud
     buffer[661] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), T { 190, 191 };
     end
 
     --Perfect Defense
     buffer[671] = function(targetId)
         local summoning = AshitaCore:GetMemoryManager():GetPlayer():GetCombatSkill(38):GetSkill();
-        return 30 + math.floor(summoning / 20);
+        return 30 + math.floor(summoning / 20), 283;
     end
 
     --Secretion
@@ -2570,4 +2570,4 @@ local function Initialize(tracker, buffer)
     end
 end
 
-return FillAbilityTable;
+return Initialize;

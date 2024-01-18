@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
+local dataTracker;
+
 local assaultZones = {
     55, --Ilrusi Atoll
     56, --Periqia
@@ -253,14 +255,14 @@ local allSongsEquipment = {
 
 local function SongSum()
     local total = 1.0;
-    local equipment = gData.GetEquipmentTable();
+    local equipment = dataTracker:GetEquippedSet();
     for _,equipPiece in pairs(equipment) do
         local value = allSongsEquipment[equipPiece.Id];
         if value ~= nil then
             total = total + value;
         end
     end
-    local augments = gData.ParseAugments().Generic[0x043];
+    local augments = dataTracker:ParseAugments().Generic[0x043];
     if augments then
         for _,v in pairs(augments) do
             total = total + (v + 1);
@@ -270,20 +272,20 @@ local function SongSum()
 end
 
 local function AddConditionalInstruments(multiplier)
-    local instrument = gData.GetEquipmentTable()[3].Id;
+    local instrument = dataTracker:GetEquippedSet()[3].Id;
     if (instrument == 18341) then
-        local zone = gData.GetZone();
+        local zone = AshitaCore:GetMemoryManager():GetParty():GetMemberZone(0);
         for _,match in pairs(dynamisZones) do
             if zone == match then
                 multiplier = multiplier + 0.2;
             end
         end
     elseif (instrument == 21406) then
-        if (gData.GetBuffActive(511)) then
+        if (dataTracker:GetBuffActive(511)) then
             multiplier = multiplier + 0.4;
         end
     elseif (instrument == 21409) then
-        if (gData.GetBuffActive(511)) then
+        if (dataTracker:GetBuffActive(511)) then
             multiplier = multiplier + 0.2;
         end
     end
@@ -292,27 +294,27 @@ end
 
 local function CalculateBuffSongDuration(multiplier, targetId)
     multiplier = AddConditionalInstruments(multiplier);
-    if (gData.GetMainJob() == 10) and (gData.GetMainJobLevel() == 99) then
-        local total = gData.GetJobPointTotal(10);
-        if (gData.GetJobPointTotal(10) >= 1200) then
+    if (dataTracker:GetJobData().Main == 10) and (dataTracker:GetJobData().MainLevel == 99) then
+        local total = dataTracker:GetJobPointTotal(10);
+        if (dataTracker:GetJobPointTotal(10) >= 1200) then
             multiplier = multiplier + 0.05;
         end
     end
     local duration = 120 * multiplier;
 
-    if (gData.GetBuffActive(348)) then
+    if (dataTracker:GetBuffActive(348)) then
         duration = duration * 2;
     end
 
-    if (gData.GetMainJob() == 10) and (gData.GetMainJobLevel() == 99) then
-        if (gData.GetBuffActive(455)) then
-            duration = duration + (2 * gData.GetJobPoints(10, 6));
+    if (dataTracker:GetJobData().Main == 10) and (dataTracker:GetJobData().MainLevel == 99) then
+        if (dataTracker:GetBuffActive(455)) then
+            duration = duration + (2 * dataTracker:GetJobPointCount(10, 6));
         end
-        if (gData.GetBuffActive(499)) then
-            duration = duration + (2 * gData.GetJobPoints(10, 1));
+        if (dataTracker:GetBuffActive(499)) then
+            duration = duration + (2 * dataTracker:GetJobPointCount(10, 1));
         end
-        if (gData.GetBuffActive(231)) then
-            duration = duration + gData.GetJobPoints(10, 8);
+        if (dataTracker:GetBuffActive(231)) then
+            duration = duration + dataTracker:GetJobPointCount(10, 8);
         end
     end
 
@@ -320,33 +322,33 @@ local function CalculateBuffSongDuration(multiplier, targetId)
 end
 
 local function CalculateMinneDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(minneEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(minneEquipment), targetId);
 end
 
 local function CalculateMinuetDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(minuetEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(minuetEquipment), targetId);
 end
 
 local function CalculatePaeonDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(paeonEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(paeonEquipment), targetId);
 end
 
 local function CalculateMadrigalDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(madrigalEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(madrigalEquipment), targetId);
 end
 
 local function CalculateMamboDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(mamboEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(mamboEquipment), targetId);
 end
 
 local function CalculateEtudeDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(etudeEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(etudeEquipment), targetId);
 end
 
 local function CalculateBalladDuration(targetId)
-    local multiplier = SongSum() + gData.EquipSum(balladEquipment);
-    if (gData.GetEquipmentTable()[3].Id == 17851) then
-        local zone = gData.GetZone();
+    local multiplier = SongSum() + dataTracker:EquipSum(balladEquipment);
+    if (dataTracker:GetEquippedSet()[3].Id == 17851) then
+        local zone = AshitaCore:GetMemoryManager():GetParty():GetMemberZone(0);
         for _,match in pairs(assaultZones) do
             if zone == match then
                 multiplier = multiplier + 0.1;
@@ -357,55 +359,55 @@ local function CalculateBalladDuration(targetId)
 end
 
 local function CalculateMarchDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(marchEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(marchEquipment), targetId);
 end
 
 local function CalculatePreludeDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(preludeEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(preludeEquipment), targetId);
 end
 
 local function CalculateMazurkaDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(mazurkaEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(mazurkaEquipment), targetId);
 end
 
 local function CalculateCarolDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(carolEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(carolEquipment), targetId);
 end
 
 local function CalculateHymnusDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(hymnusEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(hymnusEquipment), targetId);
 end
 
 local function CalculateScherzoDuration(targetId)
-    return CalculateBuffSongDuration(SongSum() + gData.EquipSum(scherzoEquipment), targetId);
+    return CalculateBuffSongDuration(SongSum() + dataTracker:EquipSum(scherzoEquipment), targetId);
 end
 
 local function CalculateDebuffSongDuration(base, multiplier, lullaby)
     multiplier = AddConditionalInstruments(multiplier);
-    if (gData.GetMainJob() == 10) and (gData.GetMainJobLevel() == 99) then
-        if (gData.GetJobPointTotal(10) >= 1200) then
+    if (dataTracker:GetJobData().Main == 10) and (dataTracker:GetJobData().MainLevel == 99) then
+        if (dataTracker:GetJobPointTotal(10) >= 1200) then
             multiplier = multiplier + 0.05;
         end
     end
     
     local duration = base * multiplier;
 
-    if (gData.GetMainJob() == 10) and (gData.GetMainJobLevel() == 99) then
+    if (dataTracker:GetJobData().Main == 10) and (dataTracker:GetJobData().MainLevel == 99) then
         if lullaby then
-            duration = duration + gData.GetJobPoints(10, 7);
+            duration = duration + dataTracker:GetJobPointCount(10, 7);
         end
-        if (gData.GetBuffActive(499)) then
-            duration = duration + (2 * gData.GetJobPoints(10, 1));
+        if (dataTracker:GetBuffActive(499)) then
+            duration = duration + (2 * dataTracker:GetJobPointCount(10, 1));
         end
     end
     
-    if (gData.GetBuffActive(348)) then
+    if (dataTracker:GetBuffActive(348)) then
         duration = duration * 2;
     end
     
-    if (gData.GetMainJob() == 10) and (gData.GetMainJobLevel() == 99) then
-        if (gData.GetBuffActive(231)) then
-            duration = duration + gData.GetJobPoints(10, 8);
+    if (dataTracker:GetJobData().Main == 10) and (dataTracker:GetJobData().MainLevel == 99) then
+        if (dataTracker:GetBuffActive(231)) then
+            duration = duration + dataTracker:GetJobPointCount(10, 8);
         end
     end
     
@@ -413,581 +415,582 @@ local function CalculateDebuffSongDuration(base, multiplier, lullaby)
 end
 
 local function CalculateElegyDuration(base)
-    return CalculateDebuffSongDuration(base, SongSum() + gData.EquipSum(elegyEquipment), false);
+    return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(elegyEquipment), false);
 end
 
 local function CalculateLullabyDuration(base)
-    return CalculateDebuffSongDuration(base, SongSum() + gData.EquipSum(lullabyEquipment), true);
+    return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(lullabyEquipment), true);
 end
 
 local function CalculateThrenodyDuration(base)
-    return CalculateDebuffSongDuration(base, SongSum() + gData.EquipSum(threnodyEquipment), false);
+    return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(threnodyEquipment), false);
 end
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
     --[[UNKNOWN
     --Foe Requiem
-	spellTable[368] = function(targetId)
+	buffer[368] = function(targetId)
 		return 0;
 	end
     ]]--
     
     --[[UNKNOWN
 	--Foe Requiem II
-	spellTable[369] = function(targetId)
+	buffer[369] = function(targetId)
 		return 0;
 	end
     ]]--
     
     --[[UNKNOWN
 	--Foe Requiem III
-	spellTable[370] = function(targetId)
+	buffer[370] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Foe Requiem IV
-	spellTable[371] = function(targetId)
+	buffer[371] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Foe Requiem V
-	spellTable[372] = function(targetId)
+	buffer[372] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Foe Requiem VI
-	spellTable[373] = function(targetId)
+	buffer[373] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Foe Requiem VII
-	spellTable[374] = function(targetId)
+	buffer[374] = function(targetId)
 		return 0;
 	end
     ]]--
 
 	--Horde Lullaby
-	spellTable[376] = function(targetId)
-		return CalculateLullabyDuration(30);
+	buffer[376] = function(targetId)
+		return CalculateLullabyDuration(30), 2;
 	end
 
 	--Horde Lullaby II
-	spellTable[377] = function(targetId)
-		return CalculateLullabyDuration(60);
+	buffer[377] = function(targetId)
+		return CalculateLullabyDuration(60), 2;
 	end
 
     --Army's Paeon
-    spellTable[378] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[378] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon II
-    spellTable[379] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[379] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon III
-    spellTable[380] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[380] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon IV
-    spellTable[381] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[381] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon V
-    spellTable[382] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[382] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon VI
-    spellTable[383] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[383] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon VII
-    spellTable[384] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[384] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Army's Paeon VIII
-    spellTable[385] = function(targetId)
-        return CalculatePaeonDuration(targetId);
+    buffer[385] = function(targetId)
+        return CalculatePaeonDuration(targetId), 195;
     end
 
      --Mage's Ballad
-    spellTable[386] = function(targetId)
-        return CalculateBalladDuration(targetId);
+    buffer[386] = function(targetId)
+        return CalculateBalladDuration(targetId), 196;
     end
 
      --Mage's Ballad II
-    spellTable[387] = function(targetId)
-        return CalculateBalladDuration(targetId);
+    buffer[387] = function(targetId)
+        return CalculateBalladDuration(targetId), 196;
     end
 
      --Mage's Ballad III
-    spellTable[388] = function(targetId)
-        return CalculateBalladDuration(targetId);
+    buffer[388] = function(targetId)
+        return CalculateBalladDuration(targetId), 196;
     end
 
      --Knight's Minne
-    spellTable[389] = function(targetId)
-        return CalculateMinneDuration(targetId);
+    buffer[389] = function(targetId)
+        return CalculateMinneDuration(targetId), 197;
     end
 
      --Knight's Minne II
-    spellTable[390] = function(targetId)
-        return CalculateMinneDuration(targetId);
+    buffer[390] = function(targetId)
+        return CalculateMinneDuration(targetId), 197;
     end
 
      --Knight's Minne III
-    spellTable[391] = function(targetId)
-        return CalculateMinneDuration(targetId);
+    buffer[391] = function(targetId)
+        return CalculateMinneDuration(targetId), 197;
     end
 
      --Knight's Minne IV
-    spellTable[392] = function(targetId)
-        return CalculateMinneDuration(targetId);
+    buffer[392] = function(targetId)
+        return CalculateMinneDuration(targetId), 197;
     end
 
      --Knight's Minne V
-    spellTable[393] = function(targetId)
-        return CalculateMinneDuration(targetId);
+    buffer[393] = function(targetId)
+        return CalculateMinneDuration(targetId), 197;
     end
 
      --Valor Minuet
-    spellTable[394] = function(targetId)
-        return CalculateMinuetDuration(targetId);
+    buffer[394] = function(targetId)
+        return CalculateMinuetDuration(targetId), 198;
     end
 
      --Valor Minuet II
-    spellTable[395] = function(targetId)
-        return CalculateMinuetDuration(targetId);
+    buffer[395] = function(targetId)
+        return CalculateMinuetDuration(targetId), 198;
     end
 
      --Valor Minuet III
-    spellTable[396] = function(targetId)
-        return CalculateMinuetDuration(targetId);
+    buffer[396] = function(targetId)
+        return CalculateMinuetDuration(targetId), 198;
     end
 
      --Valor Minuet IV
-    spellTable[397] = function(targetId)
-        return CalculateMinuetDuration(targetId);
+    buffer[397] = function(targetId)
+        return CalculateMinuetDuration(targetId), 198;
     end
 
      --Valor Minuet V
-    spellTable[398] = function(targetId)
-        return CalculateMinuetDuration(targetId);
+    buffer[398] = function(targetId)
+        return CalculateMinuetDuration(targetId), 198;
     end
 
      --Sword Madrigal
-    spellTable[399] = function(targetId)
-        return CalculateMadrigalDuration(targetId);
+    buffer[399] = function(targetId)
+        return CalculateMadrigalDuration(targetId), 199;
     end
 
      --Blade Madrigal
-    spellTable[400] = function(targetId)
-        return CalculateMadrigalDuration(targetId);
+    buffer[400] = function(targetId)
+        return CalculateMadrigalDuration(targetId), 199;
     end
 
      --Hunter's Prelude
-    spellTable[401] = function(targetId)
-        return CalculatePreludeDuration(targetId);
+    buffer[401] = function(targetId)
+        return CalculatePreludeDuration(targetId), 200;
     end
 
      --Archer's Prelude
-    spellTable[402] = function(targetId)
-        return CalculatePreludeDuration(targetId);
+    buffer[402] = function(targetId)
+        return CalculatePreludeDuration(targetId), 200;
     end
 
      --Sheepfoe Mambo
-    spellTable[403] = function(targetId)
-        return CalculateMamboDuration(targetId);
+    buffer[403] = function(targetId)
+        return CalculateMamboDuration(targetId), 201;
     end
 
      --Dragonfoe Mambo
-    spellTable[404] = function(targetId)
-        return CalculateMamboDuration(targetId);
+    buffer[404] = function(targetId)
+        return CalculateMamboDuration(targetId), 201;
     end
 
      --Fowl Aubade
-    spellTable[405] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[405] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 202;
     end
 
      --Herb Pastoral
-    spellTable[406] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[406] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 203;
     end
 
      --Chocobo Hum
-    spellTable[407] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[407] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 204;
     end
 
      --Shining Fantasia
-    spellTable[408] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[408] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 205;
     end
 
      --Scop's Operetta
-    spellTable[409] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[409] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 206;
     end
 
      --Puppet's Operetta
-    spellTable[410] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[410] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 206;
     end
 
      --Jester's Operetta
-    spellTable[411] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[411] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 206;
     end
 
      --Gold Capriccio
-    spellTable[412] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[412] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 207;
     end
 
      --Devotee Serenade
-    spellTable[413] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[413] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 208;
     end
 
      --Warding Round
-    spellTable[414] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[414] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 209;
     end
 
      --Goblin Gavotte
-    spellTable[415] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[415] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 210;
     end
 
      --Cactuar Fugue
-    spellTable[416] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[416] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 211;
     end
 
      --Honor March
-    spellTable[417] = function(targetId)
-        return CalculateMarchDuration(targetId);
+    buffer[417] = function(targetId)
+        return CalculateMarchDuration(targetId), 214;
     end
 
      --Protected Aria
-    spellTable[418] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[418] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 213;
     end
 
      --Advancing March
-    spellTable[419] = function(targetId)
-        return CalculateMarchDuration(targetId);
+    buffer[419] = function(targetId)
+        return CalculateMarchDuration(targetId), 214;
     end
 
      --Victory March
-    spellTable[420] = function(targetId)
-        return CalculateMarchDuration(targetId);
+    buffer[420] = function(targetId)
+        return CalculateMarchDuration(targetId), 214;
     end
     
 	--Battlefield Elegy
-	spellTable[421] = function(targetId)
-		return CalculateElegyDuration(120);
+	buffer[421] = function(targetId)
+		return CalculateElegyDuration(120), 194;
 	end
 
 	--Carnage Elegy
-	spellTable[422] = function(targetId)
-		return CalculateElegyDuration(180);
+	buffer[422] = function(targetId)
+		return CalculateElegyDuration(180), 194;
 	end
 
      --Sinewy Etude
-    spellTable[424] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[424] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Dextrous Etude
-    spellTable[425] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[425] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Vivacious Etude
-    spellTable[426] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[426] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Quick Etude
-    spellTable[427] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[427] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Learned Etude
-    spellTable[428] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[428] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Spirited Etude
-    spellTable[429] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[429] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Enchanting Etude
-    spellTable[430] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[430] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Herculean Etude
-    spellTable[431] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[431] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Uncanny Etude
-    spellTable[432] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[432] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Vital Etude
-    spellTable[433] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[433] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Swift Etude
-    spellTable[434] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[434] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Sage Etude
-    spellTable[435] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[435] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Logical Etude
-    spellTable[436] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[436] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Bewitching Etude
-    spellTable[437] = function(targetId)
-        return CalculateEtudeDuration(targetId);
+    buffer[437] = function(targetId)
+        return CalculateEtudeDuration(targetId), 215;
     end
 
      --Fire Carol
-    spellTable[438] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[438] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Ice Carol
-    spellTable[439] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[439] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Wind Carol
-    spellTable[440] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[440] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Earth Carol
-    spellTable[441] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[441] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Lightning Carol
-    spellTable[442] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[442] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Water Carol
-    spellTable[443] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[443] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Light Carol
-    spellTable[444] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[444] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Dark Carol
-    spellTable[445] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[445] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Fire Carol II
-    spellTable[446] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[446] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Ice Carol II
-    spellTable[447] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[447] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Wind Carol II
-    spellTable[448] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[448] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Earth Carol II
-    spellTable[449] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[449] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Lightning Carol II
-    spellTable[450] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[450] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Water Carol II
-    spellTable[451] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[451] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Light Carol II
-    spellTable[452] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[452] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
      --Dark Carol II
-    spellTable[453] = function(targetId)
-        return CalculateCarolDuration(targetId);
+    buffer[453] = function(targetId)
+        return CalculateCarolDuration(targetId), 216;
     end
 
 	--Fire Threnody
-	spellTable[454] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[454] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Ice Threnody
-	spellTable[455] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[455] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Wind Threnody
-	spellTable[456] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[456] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Earth Threnody
-	spellTable[457] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[457] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Ltng. Threnody
-	spellTable[458] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[458] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Water Threnody
-	spellTable[459] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[459] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Light Threnody
-	spellTable[460] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[460] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Dark Threnody
-	spellTable[461] = function(targetId)
-		return CalculateThrenodyDuration(60);
+	buffer[461] = function(targetId)
+		return CalculateThrenodyDuration(60), 217;
 	end
 
 	--Foe Lullaby
-	spellTable[463] = function(targetId)
-		return CalculateLullabyDuration(30);
+	buffer[463] = function(targetId)
+		return CalculateLullabyDuration(30), 2;
 	end
 
      --Goddess's Hymnus
-    spellTable[464] = function(targetId)
-        return CalculateHymnusDuration(targetId);
+    buffer[464] = function(targetId)
+        return CalculateHymnusDuration(targetId), 218;
     end
 
      --Chocobo Mazurka
-    spellTable[465] = function(targetId)
-        return CalculateMazurkaDuration(targetId);
+    buffer[465] = function(targetId)
+        return CalculateMazurkaDuration(targetId), 219;
     end
 
 	--Maiden's Virelai
-	spellTable[466] = function(targetId)
-		return CalculateDebuffSongDuration(30, SongSum(), false);
+	buffer[466] = function(targetId)
+		return CalculateDebuffSongDuration(30, SongSum(), false), 17;
 	end
 
      --Raptor Mazurka
-    spellTable[467] = function(targetId)
-        return CalculateMazurkaDuration(targetId);
+    buffer[467] = function(targetId)
+        return CalculateMazurkaDuration(targetId), 219;
     end
 
      --Foe Sirvente
-    spellTable[468] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[468] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 220;
     end
 
      --Adventurer's Dirge
-    spellTable[469] = function(targetId)
-        return CalculateBuffSongDuration(SongSum(), targetId);
+    buffer[469] = function(targetId)
+        return CalculateBuffSongDuration(SongSum(), targetId), 221;
     end
 
      --Sentinel's Scherzo
-    spellTable[470] = function(targetId)
-        return CalculateScherzoDuration(targetId);
+    buffer[470] = function(targetId)
+        return CalculateScherzoDuration(targetId), 222;
     end
     
 	--Foe Lullaby II
-	spellTable[471] = function(targetId)
-		return CalculateLullabyDuration(60);
+	buffer[471] = function(targetId)
+		return CalculateLullabyDuration(60), 2;
 	end
 
 	--Pining Nocturne
-	spellTable[472] = function(targetId)
-		return CalculateDebuffSongDuration(120, SongSum(), false);
+	buffer[472] = function(targetId)
+		return CalculateDebuffSongDuration(120, SongSum(), false), 223;
 	end
     
     --Fire Threnody II
-	spellTable[871] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[871] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Ice Threnody II
-	spellTable[872] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[872] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Wind Threnody II
-	spellTable[873] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[873] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Earth Threnody II
-	spellTable[874] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[874] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Ltng. Threnody II
-	spellTable[875] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[875] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Water Threnody II
-	spellTable[876] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[876] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Light Threnody II
-	spellTable[877] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[877] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 
 	--Dark Threnody II
-	spellTable[878] = function(targetId)
-		return CalculateThrenodyDuration(90);
+	buffer[878] = function(targetId)
+		return CalculateThrenodyDuration(90), 217;
 	end
 end
 
-return FillSpellTable;
+return Initialize;

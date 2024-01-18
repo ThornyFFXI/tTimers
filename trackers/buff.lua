@@ -23,7 +23,7 @@ SOFTWARE.
 --Libs
 local durations = require('durations.include');
 local encoding = require('gdifonts.encoding');
-local action = require('actionpacket');
+local actionPacket = require('actionpacket');
 local buffFlags = require('buffflags');
 
 --[[    
@@ -59,6 +59,12 @@ local activeTimers = T{};
 local buffsByAction = {};
 local buffsByTarget = {};
 local rebuildTimers = false;
+
+local pRealTime = ashita.memory.find('FFXiMain.dll', 0, '8B0D????????8B410C8B49108D04808D04808D04808D04C1C3', 2, 0);
+local abilityTypes = T{ 6, 14, 15 };
+local buffAppliedMessages = T{ 205, 230, 266, 278, 280, 319, 420, 421, 424, 425 };
+local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
+local pendingRoll = T { Time = -80 };
 
 -- Clear any conflicting buffs from table.
 local function ClearConflicts(targetId, actionResource, buffId)
@@ -118,7 +124,17 @@ local function GetActionIcon(actionResource, buffId)
     end
 
     if (target == nil) or (not GetFilePath(target)) then
-        target = string.format('STATUS:%u', buffId);
+        if (buffId == 0) or (buffId == nil) then
+            if (actionResource.Index) then
+                target = 'spells/default.png';
+            elseif (actionResource.Id < 512) then
+                target = 'weaponskills/default.png';
+            else
+                target = 'abilities/default.png';
+            end
+        else
+            target = string.format('STATUS:%u', buffId);
+        end
     end
     return target;
 end
@@ -169,8 +185,6 @@ local function RecordBuff(targetId, actionResource, buffId, duration)
     playerTable:append(actionTable);
 end
 
-
-local buffAppliedMessages = T{ 205, 230, 266, 280, 319 };
 local function HandleSpellComplete(packet)
     for _,target in ipairs(packet.Targets) do
         for _,action in ipairs(target.Actions) do
@@ -190,7 +204,34 @@ local function HandleSpellComplete(packet)
 end
 
 local function HandleAbilityComplete(packet)
-;
+    for _,target in ipairs(packet.Targets) do
+        for _,action in ipairs(target.Actions) do
+            if (buffAppliedMessages:contains(action.Message)) then
+                local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
+                
+                -- Convert double-up to pending roll..
+                if (packet.Id == 123) and (pendingRoll.Time + 48 > os.clock()) then
+                    duration = pendingRoll.Duration - (os.clock() - pendingRoll.Time);
+                    buffId = pendingRoll.Buff;
+                    packet.Id = pendingRoll.ActionId;
+                elseif (rolls:contains(packet.Id)) then
+                    pendingRoll.Time = os.clock();
+                    pendingRoll.Duration = duration;
+                    pendingRoll.Buff = buffId;
+                    pendingRoll.ActionId = packet.Id;
+                end
+
+                if type(buffId) == 'table' then
+                    buffId = buffId[1];
+                end
+
+                if duration then
+                    local res = AshitaCore:GetResourceManager():GetAbilityById(packet.Id + 512);
+                    RecordBuff(target.Id, res, buffId, duration);
+                end
+            end
+        end
+    end    
 end
 
 local function HandlePartyBuffs(packet)
@@ -215,7 +256,7 @@ local function HandlePartyBuffs(packet)
 
             --Clear any buff timers that have had the member's buff removed..
             for _,buffData in ipairs(entry) do
-                if not buffs:contains(buffData.BuffId) then
+                if (buffData.BuffId ~= 0) and (not buffs:contains(buffData.BuffId)) then
                     local target = buffData.Targets[memberId];
                     if target then
                         local timeDiff = now - target.Creation;
@@ -231,7 +272,6 @@ local function HandlePartyBuffs(packet)
     end
 end
 
-local pRealTime = ashita.memory.find('FFXiMain.dll', 0, '8B0D????????8B410C8B49108D04808D04808D04808D04C1C3', 2, 0);
 local function GetRealTime()    
     local ptr = ashita.memory.read_uint32(pRealTime);
     ptr = ashita.memory.read_uint32(ptr);
@@ -258,6 +298,23 @@ local function CalculateBuffDuration(value)
     --Convert to seconds
     return real_duration / 60;
 end
+
+local function UpdateDuration(buffId, expirationTime, newExpirationTime)
+    local now = os.clock();
+    for action,actionTable in pairs(buffsByAction) do
+        if (actionTable.BuffId == buffId) then
+            for targetId,target in pairs(actionTable.Targets) do
+                local timeDiff = now - target.Creation;
+                if (timeDiff < 2) and (math.abs(target.Expiration - expirationTime) < 2) then
+                    target.Expiration = newExpirationTime;
+                    target.TotalDuration = (newExpirationTime - now) + timeDiff;
+                    rebuildTimers = true;
+                end
+            end
+        end
+    end
+end
+local oldBuffTimers = T{};
 local function HandleBuffTimers(packet)
     local myId = durations:GetDataTracker():GetPlayerId();
     local entry = buffsByTarget[myId];
@@ -266,26 +323,41 @@ local function HandleBuffTimers(packet)
     end
 
     local now = os.clock();
-    local buffs = T{};
+    
+    local buffs = T{ };
 
     for i = 1,32 do
         local buff = struct.unpack('H', packet.data, 0x06 + (i * 2) + 1);
         if buff ~= 0xFF then
+            buff = T { ID=buff };
+            buff.Duration = CalculateBuffDuration(struct.unpack('L', packet.data, 0x44 + (i * 4) + 1));
+            buff.Expiration = os.clock() + buff.Duration;
+            buff.New = true;
+            for key,buffEntry in pairs(oldBuffTimers) do
+                if (buffEntry.ID == buff.ID) and (math.abs(buffEntry.Expiration - buff.Expiration) < 2) then
+                    buff.New = false;
+                    oldBuffTimers[key] = nil;
+                    break;
+                end
+            end
             buffs:append(buff);
         end
+    end
 
-        --Look for buffs applied less than 2 seconds ago to force duration..
-        local duration = CalculateBuffDuration(struct.unpack('L', packet.data, 0x44 + (i * 4) + 1));
-        
-        for _,buffData in ipairs(entry) do
-            if buffData.BuffId == buff then
-                local target = buffData.Targets[myId];
-                if target then
-                    local timeDiff = now - target.Creation;
-                    if (timeDiff < 2) then
-                        target.Expiration = now + duration;
-                        target.TotalDuration = timeDiff + duration;
-                        rebuildTimers = true;
+    for _,buff in ipairs(buffs) do
+        if (buff.New) then
+            --Look for buffs applied less than 2 seconds ago to force duration..            
+            for _,buffData in ipairs(entry) do
+                if buffData.BuffId == buff.ID then
+                    local target = buffData.Targets[myId];
+                    if target then
+                        local timeDiff = now - target.Creation;
+                        if (timeDiff < 2) then
+                            UpdateDuration(buffData.BuffId, target.Expiration, buff.Expiration);
+                            if pendingRoll.BuffId == buff.ID then
+                                pendingRoll.Duration = (target.Expiration - pendingRoll.Time);
+                            end
+                        end
                     end
                 end
             end
@@ -294,7 +366,7 @@ local function HandleBuffTimers(packet)
 
     --Clear any buff timers that have had the member's buff removed..
     for _,buffData in ipairs(entry) do
-        if not buffs:contains(buffData.BuffId) then
+        if (buffData.BuffId ~= 0) and (buffs:countf(function(b) return b.ID == buffData.BuffId end) == 0) then
             local target = buffData.Targets[myId];
             if target then
                 local timeDiff = now - target.Creation;
@@ -306,6 +378,7 @@ local function HandleBuffTimers(packet)
             end
         end
     end
+    oldBuffTimers = buffs;
 end
 local function HandleBuffCancel(buff, targetId)
     local flags = buffFlags[buff];
@@ -329,14 +402,12 @@ local function HandleBuffCancel(buff, targetId)
     end
 end
 
-
-local abilityTypes = T{ 6, 14, 15 };
 ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', function (e)
     --TODO: If player is dead, clear their buffs.
 
 
     if (e.id == 0x028) then
-        local packet = action:parse(e);
+        local packet = actionPacket:parse(e);
 
         if (packet.UserId == durations:GetDataTracker():GetPlayerId()) then        
             --Spell Completion
