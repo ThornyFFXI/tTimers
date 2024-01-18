@@ -33,7 +33,7 @@ local rollDuration = {
 };
 
 local function CalculateBloodPactDuration(base)
-    local skill = gData.GetCombatSkill(38);
+    local skill = AshitaCore:GetMemoryManager():GetPlayer():GetCombatSkill(38):GetSkill();
     if skill > 300 then
         return base + (skill - 300);
     end
@@ -47,18 +47,18 @@ end
 
 local function CalculateCorsairRollDuration()
     local duration = 300;
-    local augments = gData.ParseAugments();
-    duration = duration + gData.EquipSum(rollDuration);
+    local augments = dataTracker:ParseAugments();
+    duration = duration + dataTracker:EquipSum(rollDuration);
     duration = duration + augments.PhantomRoll;
-    if (gData.GetMainJob() == 17) and (gData.GetMainJobLevel() >= 75) then
-        local merits = gData.GetMeritCount(0xC04);
+    if (dataTracker:GetJobData().Main == 17) and (dataTracker:GetJobData().MainLevel >= 75) then
+        local merits = dataTracker:GetMeritCount(0xC04);
         local multiplier = 20;
         if augments.Generic[0x590] then
             multiplier = 26;
         end
         duration = duration + (merits * multiplier);
-        if (gData.GetMainJobLevel() == 99) then
-            duration = duration + (gData.GetJobPoints(17, 2) * 2);
+        if (dataTracker:GetJobData().MainLevel == 99) then
+            duration = duration + (dataTracker:GetJobPointCount(17, 2) * 2);
         end
     end
     return duration;
@@ -75,106 +75,106 @@ local function Initialize(tracker, buffer)
     --Mighty Strikes
     buffer[16] = function(targetId)
         local duration = 45;
-        if gData.ParseAugments().Generic[0x500] then
+        if dataTracker:ParseAugments().Generic[0x500] then
             duration = duration + 15;
         end
-        return duration;
+        return duration, 44;
     end
 
     --Hundred Fists
     buffer[17] = function(targetId)
         local duration = 45;
-        if gData.ParseAugments().Generic[0x501] then
+        if dataTracker:ParseAugments().Generic[0x501] then
             duration = duration + 15;
         end
-        return duration;
+        return duration, 46;
     end
 
     --Manafont
     buffer[19] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x503] then
+        if dataTracker:ParseAugments().Generic[0x503] then
             duration = duration + 30;
         end
-        return duration;
+        return duration, 47;
     end
 
     --Chainspell
     buffer[20] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x504] then
+        if dataTracker:ParseAugments().Generic[0x504] then
             duration = duration + 20;
         end
-        return duration;
+        return duration, 48;
     end
 
     --Perfect Dodge
     buffer[21] = function(targetId)
         local duration = 30;
-        if gData.ParseAugments().Generic[0x505] then
+        if dataTracker:ParseAugments().Generic[0x505] then
             duration = duration + 10;
         end
-        return duration;
+        return duration, 49;
     end
 
     --Invincible
     buffer[22] = function(targetId)
         local duration = 30;
-        if gData.ParseAugments().Generic[0x506] then
+        if dataTracker:ParseAugments().Generic[0x506] then
             duration = duration + 10;
         end
-        return duration;
+        return duration, 50;
     end
 
     --Blood Weapon
     buffer[23] = function(targetId)
         local duration = 30;
-        if gData.ParseAugments().Generic[0x507] then
+        if dataTracker:ParseAugments().Generic[0x507] then
             duration = duration + 40;
         end
-        return duration;
+        return duration, 51;
     end
 
     --Familiar
     buffer[24] = function(targetId)
         local duration = 1800;
-        if gData.ParseAugments().Generic[0x508] then
+        if dataTracker:ParseAugments().Generic[0x508] then
             duration = duration + 600;
         end
-        return duration;
+        return duration, 0;
     end
 
     --Soul Voice
     buffer[25] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x509] then
+        if dataTracker:ParseAugments().Generic[0x509] then
             duration = duration + 30;
         end
-        return duration;
+        return duration, 52;
     end
 
     --Meikyo Shisui
     buffer[27] = function(targetId)
         local duration = 30;
-        return duration;
+        return duration, 54;
     end
 
     --Spirit Surge
     buffer[29] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x50D] then
+        if dataTracker:ParseAugments().Generic[0x50D] then
             duration = duration + 20;
         end
-        return duration;
+        return duration, 126;
     end
 
     --Astral Flow
     buffer[30] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x50E] then
+        if dataTracker:ParseAugments().Generic[0x50E] then
             duration = duration + 30;
         end
-        return duration;
+        return duration, 55;
     end
 
     --Berserk
@@ -195,8 +195,8 @@ local function Initialize(tracker, buffer)
             [20845] = 20 --Instigator
         };
         local duration = 180;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 56;
     end
 
     --Warcry
@@ -211,13 +211,13 @@ local function Initialize(tracker, buffer)
             [23398] = 30 --Agoge Mask +3
         };
         local duration = 30;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 68;
     end
 
     --Defender
     buffer[33] = function(targetId)
-        return 180;
+        return 180, 57;
     end
 
     --Aggressor
@@ -235,29 +235,29 @@ local function Initialize(tracker, buffer)
             [20845] = 20 --Instigator
         };
         local duration = 180;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 58;
     end
 
     --Focus
     buffer[36] = function(targetId)
-        return 30;
+        return 30, 59;
     end
 
     --Dodge
     buffer[37] = function(targetId)
-        return 30;
+        return 30, 60;
     end
 
     --Boost
     buffer[39] = function(targetId)
         --NOTE: This varies with delay and could technically be calculated.  I don't think it's a priority since you can get duration from statustimers/etc.
-        return nil;
+        return 60, 45;
     end
 
     --Counterstance
     buffer[40] = function(targetId)
-        return 300;
+        return 300, 61;
     end
 
     --Flee
@@ -271,19 +271,19 @@ local function Initialize(tracker, buffer)
             [23648] = 18 --Pill. Poulaines +3
         };
         local duration = 30;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 32;
     end
 
     --Hide
     buffer[43] = function(targetId)
         --NOTE: No available data on how this is calculated, and it varies.
-        return nil;
+        return 500, 76;
     end
 
     --Sneak Attack
     buffer[44] = function(targetId)
-        return 60;
+        return 60, 65;
     end
 
     --Holy Circle
@@ -297,26 +297,26 @@ local function Initialize(tracker, buffer)
             [23649] = 0.5 --Rev. Leggings +3
         };
         local duration = 180;
-        duration = duration * (1.0 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1.0 + dataTracker:EquipSum(multipliers));
+        return duration, 74;
     end
 
     --Sentinel
     buffer[48] = function(targetId)
         local duration = 30;
-        local augments = gData.ParseAugments();
-        if gData.GetMainJob() == 7 and gData.GetMainJobLevel() >= 75 then
-            local merits = gData.GetMeritCount(0x986);
+        local augments = dataTracker:ParseAugments();
+        if dataTracker:GetJobData().Main == 7 and dataTracker:GetJobData().MainLevel >= 75 then
+            local merits = dataTracker:GetMeritCount(0x986);
             if merits > 0 and augments.Generic[0x557] then
                 duration = duration + (2 * merits);
             end
         end
-        return duration;
+        return duration, 62;
     end
 
     --Souleater
     buffer[49] = function(targetId)
-        return 60;
+        return 60, 63;
     end
 
     --Arcane Circle
@@ -330,8 +330,8 @@ local function Initialize(tracker, buffer)
             [23650] = 0.5 --Ig. Sollerets +3
         };
         local duration = 180;
-        duration = duration * (1.0 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1.0 + dataTracker:EquipSum(multipliers));
+        return duration, 75;
     end
 
     --Last Resort
@@ -340,8 +340,8 @@ local function Initialize(tracker, buffer)
             [26253] = 15 --Ankou's Mantle
         };
         local duration = 180;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 64;
     end
 
     --Shadowbind
@@ -355,31 +355,32 @@ local function Initialize(tracker, buffer)
             [23519] = 16 --Orion Bracers +3
         };
         local duration = 30;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        if gData.GetMainJob() == 11 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(11, 5);
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        if dataTracker:GetJobData().Main == 11 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(11, 5);
         end
-        return duration;
+        return duration, 11;
     end
 
     --Camouflage
     buffer[58] = function(targetId)
-        return nil;
+        --NOTE: No available data on how this is calculated, and it varies.
+        return 60, 77;
     end
 
     --Sharpshot
     buffer[59] = function(targetId)
-        return 60;
+        return 60, 72;
     end
 
     --Barrage
     buffer[60] = function(targetId)
-        return 60;
+        return 60, 73;
     end
 
     --Third Eye
     buffer[62] = function(targetId)
-        return 30;
+        return 30, 67;
     end
 
     --Meditate
@@ -396,14 +397,14 @@ local function Initialize(tracker, buffer)
             [21979] = 4 --Gekkei
         };
         local duration = 15;
-        local augments = gData.ParseAugments().Generic[0x4F0];
+        local augments = dataTracker:ParseAugments().Generic[0x4F0];
         if augments then
             for _,v in pairs(augments) do
                 duration = duration + (v + 1);
             end
         end
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return nil;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 0;
     end
 
     --Warding Circle
@@ -417,8 +418,8 @@ local function Initialize(tracker, buffer)
             [23386] = 0.5 --Wakido Kabuto +3
         };
         local duration = 180;
-        duration = duration * (1.0 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1.0 + dataTracker:EquipSum(multipliers));
+        return duration, 117;
     end
 
     --Ancient Circle
@@ -432,28 +433,28 @@ local function Initialize(tracker, buffer)
             [23589] = 0.5 --Vishap Brais +3
         };
         local duration = 180;
-        duration = duration * (1.0 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1.0 + dataTracker:EquipSum(multipliers));
+        return duration, 118;
     end
 
     --Divine Seal
     buffer[74] = function(targetId)
-        return 60;
+        return 60, 78;
     end
 
     --Elemental Seal
     buffer[75] = function(targetId)
-        return 60;
+        return 60, 79;
     end
 
     --Trick Attack
     buffer[76] = function(targetId)
-        return 60;
+        return 60, 87;
     end
 
     --Reward
     buffer[78] = function(targetId)
-        return 180;
+        return 180, 0;
     end
 
     --Cover
@@ -470,16 +471,16 @@ local function Initialize(tracker, buffer)
             [20728] = 8 --Kheshig Blade
         };
         local duration = 15;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 114;
     end
 
     --Chi Blast
     buffer[82] = function(targetId)
-        if gData.GetMainJob() == 2 and gData.GetMainJobLevel() >= 75 then
-            local penanceMerits = gData.GetMeritCount(0x846);
+        if dataTracker:GetJobData().Main == 2 and dataTracker:GetJobData().MainLevel >= 75 then
+            local penanceMerits = dataTracker:GetMeritCount(0x846);
             if penanceMerits > 0 then
-                return penanceMerits * 20;
+                return penanceMerits * 20, 168;
             end
         end
         return nil;
@@ -487,7 +488,7 @@ local function Initialize(tracker, buffer)
 
     --Unlimited Shot
     buffer[86] = function(targetId)
-        return 60;
+        return 60, 115;
     end
 
     --Rampart
@@ -502,171 +503,167 @@ local function Initialize(tracker, buffer)
             [23404] = 30 --Cab. Coronet +3
         };
         local duration = 30;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 623;
     end
 
     --Azure Lore
     buffer[93] = function(targetId)
         local duration = 30;
-        if gData.ParseAugments().Generic[0x50F] then
+        if dataTracker:ParseAugments().Generic[0x50F] then
             duration = duration + 10;
         end
-        return duration;
+        return duration, 163;
     end
 
     --Chain Affinity
     buffer[94] = function(targetId)
-        return 30;
+        return 30, 164;
     end
 
     --Burst Affinity
     buffer[95] = function(targetId)
-        return 30;
+        return 30, 165;
     end
 
     --Fighter's Roll
     buffer[98] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 310;
     end
 
     --Monk's Roll
     buffer[99] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 311;
     end
 
     --Healer's Roll
     buffer[100] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 312;
     end
 
     --Wizard's Roll
     buffer[101] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 313;
     end
 
     --Warlock's Roll
     buffer[102] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 314;
     end
 
     --Rogue's Roll
     buffer[103] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 315;
     end
 
     --Gallant's Roll
     buffer[104] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 316;
     end
 
     --Chaos Roll
     buffer[105] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 317;
     end
 
     --Beast Roll
     buffer[106] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 318;
     end
 
     --Choral Roll
     buffer[107] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 319;
     end
 
     --Hunter's Roll
     buffer[108] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 320;
     end
 
     --Samurai Roll
     buffer[109] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 321;
     end
 
     --Ninja Roll
     buffer[110] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 322;
     end
 
     --Drachen Roll
     buffer[111] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 323;
     end
 
     --Evoker's Roll
     buffer[112] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 324;
     end
 
     --Magus's Roll
     buffer[113] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 325;
     end
 
     --Corsair's Roll
     buffer[114] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 326;
     end
 
     --Puppet Roll
     buffer[115] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 327;
     end
 
     --Dancer's Roll
     buffer[116] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 328;
     end
 
     --Scholar's Roll
     buffer[117] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 329;
     end
 
     --Bolter's Roll
     buffer[118] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 330;
     end
 
     --Caster's Roll
     buffer[119] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 331;
     end
 
     --Courser's Roll
     buffer[120] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 332;
     end
 
     --Blitzer's Roll
     buffer[121] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 333;
     end
 
     --Tactician's Roll
     buffer[122] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 334;
     end
 
     --Light Shot
     buffer[131] = function(targetId)
-        return 60;
+        --NOTE: Sleep buff ID not verified.
+        return 60, 2;
     end
 
     --Overdrive
     buffer[135] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x511] then
+        if dataTracker:ParseAugments().Generic[0x511] then
             duration = duration + 20;
         end
-        return duration;
-    end
-
-    --Activate
-    buffer[136] = function(targetId)
-        return nil;
+        return duration, 166;
     end
 
     --Repair
@@ -677,249 +674,252 @@ local function Initialize(tracker, buffer)
             [18733] = 45, --Automat. Oil +2
             [19185] = 60 --Automat. Oil +3
         };
-        local oil = gData.GetEquipmentTable()[4].Id;
-        return oilDuration[oil]; --This is nil if no oil because we can't calculate a duration.
+        local oil = dataTracker:GetEquipmentTable()[4].Id;
+        local duration = oilDuration[oil];
+        if duration then
+            return duration, 0;
+        end
     end
     
     --Fire Maneuver
     buffer[141] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 300;
     end
 
     --Ice Maneuver
     buffer[142] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 301;
     end
 
     --Wind Maneuver
     buffer[143] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 302;
     end
 
     --Earth Maneuver
     buffer[144] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 303;
     end
 
     --Thunder Maneuver
     buffer[145] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 304;
     end
 
     --Water Maneuver
     buffer[146] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 305;
     end
 
     --Light Maneuver
     buffer[147] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 306;
     end
 
     --Dark Maneuver
     buffer[148] = function(targetId)
-        return CalculateManeuverDuration();
+        return CalculateManeuverDuration(), 307;
     end
 
     --Warrior's Charge
     buffer[149] = function(targetId)
-        return 60;
+        return 60, 340;
     end
 
     --Tomahawk
     buffer[150] = function(targetId)
-        local duration = 15 + (15 * gData.GetMeritCount(0x802));
-        return duration;
+        local duration = 15 + (15 * dataTracker:GetMeritCount(0x802));
+        return duration, 0;
     end
 
     --Mantra
     buffer[151] = function(targetId)
-        return 180;
+        return 180, 88;
     end
 
     --Formless Strikes
     buffer[152] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x537] then
-            duration = duration + (6 * gData.GetMeritCount(0x842));
+        if dataTracker:ParseAugments().Generic[0x537] then
+            duration = duration + (6 * dataTracker:GetMeritCount(0x842));
         end
-        return duration;
+        return duration, 341;
     end
 
     --Assassin's Charge
     buffer[155] = function(targetId)
-        return 60;
+        return 60, 342;
     end
 
     --Feint
     buffer[156] = function(targetId)
-        return 60;
+        return 60, 343;
     end
 
     --Fealty
     buffer[157] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x555] then
-            duration = duration + (4 * gData.GetMeritCount(0x980));
+        if dataTracker:ParseAugments().Generic[0x555] then
+            duration = duration + (4 * dataTracker:GetMeritCount(0x980));
         end
-        return duration;
+        return duration, 344;
     end
 
     --Dark Seal
     buffer[159] = function(targetId)
-        return 60;
+        return 60, 345;
     end
 
     --Diabolic Eye
     buffer[160] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x55B] then
-            duration = duration + (6 * gData.GetMeritCount(0x9C2));
+        if dataTracker:ParseAugments().Generic[0x55B] then
+            duration = duration + (6 * dataTracker:GetMeritCount(0x9C2));
         end
-        return duration;
+        return duration, 346;
     end
 
     --Killer Instinct
     buffer[162] = function(targetId)
         local duration = 170;
-        local meritCount = gData.GetMeritCount(0xA02);
+        local meritCount = dataTracker:GetMeritCount(0xA02);
         duration = duration + (10 * meritCount);
-        if gData.ParseAugments().Generic[0x560] then
+        if dataTracker:ParseAugments().Generic[0x560] then
             duration = duration + (4 * meritCount);
         end
-        return duration;
+        return duration, 349;
     end
 
     --Nightingale
     buffer[163] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x569] then
-            duration = duration + (4 * gData.GetMeritCount(0xA40));
+        if dataTracker:ParseAugments().Generic[0x569] then
+            duration = duration + (4 * dataTracker:GetMeritCount(0xA40));
         end
-        return duration;
+        return duration, 347;
     end
 
     --Troubadour
     buffer[164] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x567] then
-            duration = duration + (4 * gData.GetMeritCount(0xA42));
+        if dataTracker:ParseAugments().Generic[0x567] then
+            duration = duration + (4 * dataTracker:GetMeritCount(0xA42));
         end
-        return duration;
+        return duration, 348;
     end
 
     --Stealth Shot
     buffer[165] = function(targetId)
-        return 60;
+        return 60, 350;
     end
 
     --Flashy Shot
     buffer[166] = function(targetId)
-        return 60;
+        return 60, 351;
     end
 
     --Deep Breathing
     buffer[169] = function(targetId)
-        return 180;
+        return 180, 0;
     end
 
     --Angon
     buffer[170] = function(targetId)
-        local duration = 15 + (15 * gData.GetMeritCount(0xB42));
-        return duration;
+        local duration = 15 + (15 * dataTracker:GetMeritCount(0xB42));
+        return duration, 149;
     end
 
     --Sange
     buffer[171] = function(targetId)
-        return 60;
+        return 60, 352;
     end
 
     --Hasso
     buffer[173] = function(targetId)
-        return 300;
+        return 300, 353;
     end
 
     --Seigan
     buffer[174] = function(targetId)
-        return 300;
+        return 300, 354;
     end
 
     --Convergence
     buffer[175] = function(targetId)
-        return 60;
+        return 60, 355;
     end
 
     --Diffusion
     buffer[176] = function(targetId)
-        return 60;
+        return 60, 356;
     end
 
     --Snake Eye
     buffer[177] = function(targetId)
-        return 60;
+        return 60, 357;
     end
 
     --Trance
     buffer[181] = function(targetId)
         local duration = 60;
-        if gData.ParseAugments().Generic[0x512] then
+        if dataTracker:ParseAugments().Generic[0x512] then
             duration = duration + 20;
         end
-        return duration;
+        return duration, 376;
     end
 
     --Drain Samba
     buffer[184] = function(targetId)        
         local duration = 120;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 368;
     end
 
     --Drain Samba II
     buffer[185] = function(targetId) 
         local duration = 90;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 368;
     end
 
     --Drain Samba III
     buffer[186] = function(targetId) 
         local duration = 90;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 368;
     end
 
     --Aspir Samba
     buffer[187] = function(targetId) 
         local duration = 120;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 369;
     end
 
     --Aspir Samba II
     buffer[188] = function(targetId) 
         local duration = 120;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 369;
     end
 
     --Haste Samba
     buffer[189] = function(targetId) 
         local duration = 90;
-        if gData.GetMainJob() == 19 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(19, 3));
+        if dataTracker:GetJobData().Main == 19 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(19, 3));
         end
-        return duration;
+        return duration, 370;
     end
 
     --Spectral Jig
@@ -946,8 +946,8 @@ local function Initialize(tracker, buffer)
             [23617] = 0.5 --Horos Tights +3
         };
         local duration = 180;
-        duration = duration * (1 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1 + dataTracker:EquipSum(multipliers));
+        return duration, T{69, 71};
     end
 
     --Chocobo Jig
@@ -974,252 +974,247 @@ local function Initialize(tracker, buffer)
             [23617] = 0.5 --Horos Tights +3
         };
         local duration = 120;
-        duration = duration * (1 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1 + dataTracker:EquipSum(multipliers));
+        return duration, 176;
     end
     
     --Quickstep
     buffer[201] = function(targetId)
-        return CalculateStepDuration(targetId, 201);
+        return CalculateStepDuration(targetId, 201), T{ 386, 387, 388, 389, 390 };
     end
 
     --Box Step
     buffer[202] = function(targetId)
-        return CalculateStepDuration(targetId, 202);
+        return CalculateStepDuration(targetId, 202), T{ 391, 392, 393, 394, 395 };
     end
 
     --Stutter Step
     buffer[203] = function(targetId)
-        return CalculateStepDuration(targetId, 203);
+        return CalculateStepDuration(targetId, 203), T{ 396, 397, 398, 399, 400 };
     end
 
     --Deperate Flourish
     buffer[205] = function(targetId)
-        return 120; -- FIXME: Stub duration
+        return 120, 12;
     end
 
     --Building Flourish
     buffer[208] = function(targetId)
-        return 60;
+        return 60, 375;
     end
 
     --Tabula Rasa
     buffer[210] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x513] then
+        if dataTracker:ParseAugments().Generic[0x513] then
             duration = duration + 30;
         end
-        return duration;
+        return duration, 377;
     end
 
     --Light Arts
     buffer[211] = function(targetId)
-        return 7200;
+        return 7200, 358;
     end
 
     --Dark Arts
     buffer[212] = function(targetId)
-        return 7200;
+        return 7200, 359;
     end
 
     --Penury
     buffer[215] = function(targetId)
-        return 60;
+        return 60, 360;
     end
 
     --Celerity
     buffer[216] = function(targetId)
-        return 60;
+        return 60, 362;
     end
 
     --Rapture
     buffer[217] = function(targetId)
-        return 60;
+        return 60, 364;
     end
 
     --Accession
     buffer[218] = function(targetId)
-        return 60;
+        return 60, 366;
     end
 
     --Parsimony
     buffer[219] = function(targetId)
-        return 60;
+        return 60, 361;
     end
 
     --Alacrity
     buffer[220] = function(targetId)
-        return 60;
+        return 60, 363;
     end
 
     --Ebullience
     buffer[221] = function(targetId)
-        return 60;
+        return 60, 365;
     end
 
     --Manifestation
     buffer[222] = function(targetId)
-        return 60;
+        return 60, 367;
     end
 
     --Velocity Shot
     buffer[224] = function(targetId)
-        return 7200;
+        return 7200, 371;
     end
 
     --Retaliation
     buffer[226] = function(targetId)
-        return 180;
+        return 180, 405;
     end
 
     --Footwork
     buffer[227] = function(targetId)
-        return 60;
+        return 60, 406;
     end
 
     --Pianissimo
     buffer[229] = function(targetId)
-        return 60;
+        return 60, 409;
     end
 
     --Sekkanoki
     buffer[230] = function(targetId)
-        return 60;
+        return 60, 408;
     end
 
     --Sublimation
     buffer[233] = function(targetId)
-        return 7200;
+        return 7200, 187;
     end
 
     --Addendum: White
     buffer[234] = function(targetId)
-        return 7200;
+        return 7200, 401;
     end
 
     --Addendum: Black
     buffer[235] = function(targetId)
-        return 7200;
+        return 7200, 402;
     end
 
     --Saber Dance
     buffer[237] = function(targetId)
-        return 300;
+        return 300, 410;
     end
 
     --Fan Dance
     buffer[238] = function(targetId)
-        return 300;
-    end
-
-    --No Foot Rise
-    buffer[239] = function(targetId)
-        return nil;
+        return 300, 411;
     end
 
     --Altruism
     buffer[240] = function(targetId)
-        return 60;
+        return 60, 412;
     end
 
     --Focalization
     buffer[241] = function(targetId)
-        return 60;
+        return 60, 413;
     end
 
     --Tranquility
     buffer[242] = function(targetId)
-        return 60;
+        return 60, 414;
     end
 
     --Equanimity
     buffer[243] = function(targetId)
-        return 60;
+        return 60, 415;
     end
 
     --Enlightenment
     buffer[244] = function(targetId)
-        return 60;
+        return 60, 416;
     end
 
     --Afflatus Solace
     buffer[245] = function(targetId)
-        return 7200;
+        return 7200, 417;
     end
 
     --Afflatus Misery
     buffer[246] = function(targetId)
-        return 7200;
+        return 7200, 418;
     end
 
     --Composure
     buffer[247] = function(targetId)
-        return 7200;
+        return 7200, 419;
     end
 
     --Yonin
     buffer[248] = function(targetId)
-        return 300;
+        return 300, 420;
     end
 
     --Innin
     buffer[249] = function(targetId)
-        return 300;
+        return 300, 421;
     end
 
     --Avatar's Favor
     buffer[250] = function(targetId)
-        return 7200;
+        return 7200, 431;
     end
 
     --Restraint
     buffer[252] = function(targetId)
-        return 300;
+        return 300, 435;
     end
 
     --Perfect Counter
     buffer[253] = function(targetId)
-        return 30;
+        return 30, 436;
     end
 
     --Mana Wall
     buffer[254] = function(targetId)
-        return 300;
+        return 300, 437;
     end
 
     --Divine Emblem
     buffer[255] = function(targetId)
-        return 60;
+        return 60, 438;
     end
 
     --Nether Void
     buffer[256] = function(targetId)
-        return 60;
+        return 60, 439;
     end
 
     --Double Shot
     buffer[257] = function(targetId)
-        return 90;
+        return 90, 433;
     end
 
     --Sengikori
     buffer[258] = function(targetId)
-        return 60;
+        return 60, 440;
     end
 
     --Futae
     buffer[259] = function(targetId)
-        return 60;
+        return 60, 441;
     end
 
     --Presto
     buffer[261] = function(targetId)
-        return 30;
+        return 30, 442;
     end
 
     --Climactic Flourish
     buffer[264] = function(targetId)
-        return 60;
+        return 60, 443;
     end
 
     --Blood Rage
@@ -1232,267 +1227,262 @@ local function Initialize(tracker, buffer)
             [26899] = 34 --Boii Lorica +1            
         };
         local duration = 30;
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 460;
     end
 
     --Impetus
     buffer[269] = function(targetId)
-        return 180;
+        return 180, 461;
     end
 
     --Divine Caress
     buffer[270] = function(targetId)
-        return 60;
+        return 60, 459;
     end
 
     --Sacrosanctity
     buffer[271] = function(targetId)
-        return 60;
+        return 60, 477;
     end
 
     --Manawell
     buffer[273] = function(targetId)
-        return 60;
+        return 60, 229;
     end
 
     --Saboteur
     buffer[274] = function(targetId)
-        return 60;
+        return 60, 454;
     end
 
     --Spontaneity
     buffer[275] = function(targetId)
-        return 60;
+        return 60, 230;
     end
 
     --Conspirator
     buffer[276] = function(targetId)
-        return 60;
+        return 60, 462;
     end
 
     --Sepulcher
     buffer[277] = function(targetId)
-        return 180;
+        return 180, 463;
     end
 
     --Palisade
     buffer[278] = function(targetId)
-        return 60;
+        return 60, 478;
     end
 
     --Arcane Crest
     buffer[279] = function(targetId)
-        return 180;
+        return 180, 464;
     end
 
     --Scarlet Delirium
     buffer[280] = function(targetId)
-        return 90;
+        return 90, 479;
     end
 
     --Spur
     buffer[281] = function(targetId)
-        return 90;
+        return 90, 0;
     end
 
     --Run Wild
     buffer[282] = function(targetId)
         local duration = 300;
-        if gData.GetMainJob() == 9 and gData.GetMainJobLevel() == 99 then
-            duration = duration + (2 * gData.GetJobPoints(9, 8));
+        if dataTracker:GetJobData().Main == 9 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + (2 * dataTracker:GetJobPointCount(9, 8));
         end
-        return duration;
+        return duration, 0;
     end
 
     --Tenuto
     buffer[283] = function(targetId)
-        return 60;
+        return 60, 455;
     end
 
     --Marcato
     buffer[284] = function(targetId)
-        return 60;
+        return 60, 231;
     end
 
     --Decoy Shot
     buffer[286] = function(targetId)
-        return 180;
+        return 180, 433;
     end
 
     --Hamanoha
     buffer[287] = function(targetId)
-        return 180;
+        return 180, 465;
     end
 
     --Hagakure
     buffer[288] = function(targetId)
-        return 60;
+        return 60, 483;
     end
 
     --Issekigan
     buffer[291] = function(targetId)
-        return 60;
+        return 60, 484;
     end
 
     --Dragon Breaker
     buffer[292] = function(targetId)
-        return 180;
-    end
-
-    --Soul Jump
-    buffer[293] = function(targetId)
-        return nil;
+        return 180, 466;
     end
 
     --Steady Wing
     buffer[295] = function(targetId)
-        return 180;
+        return 180, 0;
     end
 
     --Efflux
     buffer[297] = function(targetId)
-        return 60;
+        return 60, 457;
     end
 
     --Unbridled Learning
     buffer[298] = function(targetId)
-        return 60;
+        return 60, 485;
     end
 
     --Triple Shot
     buffer[301] = function(targetId)
-        return 90;
+        return 90, 467;
     end
 
     --Allies' Roll
     buffer[302] = function(targetId)
-        return nil;
+        return CalculateCorsairRollDuration(), 335;
     end
 
     --Miser's Roll
     buffer[303] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 336;
     end
 
     --Companion's Roll
     buffer[304] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 337;
     end
 
     --Avenger's Roll
     buffer[305] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 338;
     end
 
     --Feather Step
     buffer[312] = function(targetId)
-        return CalculateStepDuration(targetId, 312);
+        return CalculateStepDuration(targetId, 312), T{ 448, 449, 450, 451, 452 };
     end
 
     --Striking Flourish
     buffer[313] = function(targetId)
-        return 60;
+        return 60, 468;
     end
 
     --Ternary Flourish
     buffer[314] = function(targetId)
-        return 60;
+        return 60, 472;
     end
 
     --Perpetuance
     buffer[316] = function(targetId)
-        return 60;
+        return 60, 469;
     end
 
     --Immanence
     buffer[317] = function(targetId)
-        return 60;
+        return 60, 470;
     end
 
     --Konzen-ittai
     buffer[320] = function(targetId)
-        return 60;
+        return 60, 0;
     end
 
     --Bully
     buffer[321] = function(targetId)
-        return 30;
+        return 30, 22;
     end
 
     --Brazen Rush
     buffer[323] = function(targetId)
-        return 30;
+        return 30, 490;
     end
 
     --Inner Strength
     buffer[324] = function(targetId)
-        return 30;
+        return 30, 491;
     end
 
     --Asylum
     buffer[325] = function(targetId)
-        return 30;
+        return 30, 492;
     end
 
     --Subtle Sorcery
     buffer[326] = function(targetId)
-        return 60;
+        return 60, 493;
     end
 
     --Stymie
     buffer[327] = function(targetId)
-        return 60;
+        return 60, 494;
     end
 
     --Intervene
     buffer[329] = function(targetId)
-        return 30;
+        return 30, 496;
     end
 
     --Soul Enslavement
     buffer[330] = function(targetId)
-        return 30;
+        return 30, 493;
     end
 
     --Unleash
     buffer[331] = function(targetId)
-        return 60;
+        return 60, 498;
     end
 
     --Clarion Call
     buffer[332] = function(targetId)
-        return 180;
+        return 180, 499;
     end
 
     --Overkill
     buffer[333] = function(targetId)
-        return 60;
+        return 60, 500;
     end
 
     --Yaegasumi
     buffer[334] = function(targetId)
-        return 45;
+        return 45, 501;
     end
 
     --Mikage
     buffer[335] = function(targetId)
-        return 45;
+        return 45, 502;
     end
 
     --Fly High
     buffer[336] = function(targetId)
-        return 30;
+        return 30, 503;
     end
 
     --Astral Conduit
     buffer[337] = function(targetId)
-        return 30;
+        return 30, 504;
     end
 
     --Unbridled Wisdom
     buffer[338] = function(targetId)
-        return 60;
+        return 60, 505;
     end
 
     --Cutting Cards
@@ -1503,109 +1493,94 @@ local function Initialize(tracker, buffer)
     --Heady Artifice
     buffer[340] = function(targetId)
         --TODO: Find automaton head to determine length... (maybe pet uses command and can do it that way?)
-        return 0;
+        return 60, 0;
     end
 
     --Grand Pas
     buffer[341] = function(targetId)
-        return 30;
+        return 30, 507;
     end
 
     --Bolster
     buffer[343] = function(targetId)
         local duration = 180;
-        if gData.ParseAugments().Generic[0x514] then
+        if dataTracker:ParseAugments().Generic[0x514] then
             duration = 210;
         end
-        return duration;
+        return duration, 513;
     end
 
     --Collimated Fervor
     buffer[348] = function(targetId)
-        return 60;
+        return 60, 517;
     end
 
     --Blaze of Glory
     buffer[350] = function(targetId)
-        return 60;
+        return 60, 569;
     end
 
     --Dematerialize
     buffer[351] = function(targetId)
         local duration = 60;
-        if gData.GetMainJob() == 21 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(21, 6);
+        if dataTracker:GetJobData().Main == 21 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(21, 6);
         end
-        return duration;
+        return duration, 518;
     end
 
     --Theurgic Focus
     buffer[352] = function(targetId)
-        return 60;
-    end
-
-    --Concentric Pulse
-    buffer[353] = function(targetId)
-        return nil;
-    end
-
-    --Mending Halation
-    buffer[354] = function(targetId)
-        return nil;
-    end
-
-    --Radial Arcana
-    buffer[355] = function(targetId)
-        return nil;
+        return 60, 519;
     end
 
     --Elemental Sforzo
     buffer[356] = function(targetId)
         local duration = 30;
-        if gData.ParseAugments().Generic[0x515] then
+        if dataTracker:ParseAugments().Generic[0x515] then
             duration = 40;
         end
-        return duration;
+        return duration, 522;
     end
 
     --Ignis
     buffer[358] = function(targetId)
-        return 300;
+        return 300, 523;
     end
 
     --Gelus
     buffer[359] = function(targetId)
-        return 300;
+        return 300, 524;
     end
 
     --Flabra
     buffer[360] = function(targetId)
-        return 300;
+        return 300, 525;
     end
 
     --Tellus
     buffer[361] = function(targetId)
-        return 300;
+        return 300, 526;
     end
 
     --Sulpor
     buffer[362] = function(targetId)
-        return 300;
+        return 300, 527;
     end
 
     --Unda
     buffer[363] = function(targetId)
-        return 300;
+        return 300, 528;
     end
 
     --Lux
     buffer[364] = function(targetId)
-        return 300;
+        return 300, 529;
     end
 
     --Tenebrae
     buffer[365] = function(targetId)
-        return 300;
+        return 300, 530;
     end
 
     --Vallation
@@ -1618,26 +1593,26 @@ local function Initialize(tracker, buffer)
             [23464] = 19, --Runeist's Coat +3
             [26267] = 15 --Ogma's Cape
         };
-        duration = duration + gData.EquipSum(additiveModifiers);
-        if gData.GetMainJob() == 22 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(22, 3);
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(22, 3);
         end
         return duration;
     end
 
     --Swordplay
     buffer[367] = function(targetId)
-        return 120;
+        return 120, 532;
     end
 
     --Pflug
     buffer[369] = function(targetId)
-        return 120;
+        return 120, 533;
     end
 
     --Embolden
     buffer[370] = function(targetId)
-        return 60;
+        return 60, 534;
     end
 
     --Valiance
@@ -1650,11 +1625,11 @@ local function Initialize(tracker, buffer)
             [23464] = 19, --Runeist's Coat +3
             [26267] = 15 --Ogma's Cape
         };
-        duration = duration + gData.EquipSum(additiveModifiers);
-        if gData.GetMainJob() == 22 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(22, 3);
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(22, 3);
         end
-        return duration;
+        return duration, 535;
     end
 
     --Gambit
@@ -1666,11 +1641,11 @@ local function Initialize(tracker, buffer)
             [23196] = 14, --Runeist's Mitons +2
             [23531] = 16 --Runeist's Mitons +3
         };
-        duration = duration + gData.EquipSum(additiveModifiers);
-        if gData.GetMainJob() == 22 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(22, 9);
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(22, 9);
         end
-        return duration;
+        return duration, 536;
     end
 
     --Liement
@@ -1683,42 +1658,42 @@ local function Initialize(tracker, buffer)
             [23486] = 5, --Futhark Coat +3
             [21698] = 3 --Bidenhander
         };
-        duration = duration + gData.EquipSum(additiveModifiers);
-        return duration;
+        duration = duration + dataTracker:EquipSum(additiveModifiers);
+        return duration, 537;
     end
 
     --One for All
     buffer[374] = function(targetId)
         local duration = 30;
-        if gData.GetMainJob() == 22 and gData.GetMainJobLevel() == 99 then
-            duration = duration + gData.GetJobPoints(22, 8);
+        if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
+            duration = duration + dataTracker:GetJobPointCount(22, 8);
         end
-        return duration;
+        return duration, 538;
     end
 
     --Rayke
     buffer[375] = function(targetId)
-        local merits = gData.GetMeritCount(0xD82);
+        local merits = dataTracker:GetMeritCount(0xD82);
         local duration = 27 + (merits * 3);
-        if gData.ParseAugments().Generic[0x515] then
+        if dataTracker:ParseAugments().Generic[0x515] then
             duration = duration + merits;
         end
-        return duration;
+        return duration, 571;
     end
 
     --Battuta
     buffer[376] = function(targetId)
-        return 90;
+        return 90, 570;
     end
 
     --Widened Compass
     buffer[377] = function(targetId)
-        return 60;
+        return 60, 508;
     end
 
     --Odyllic Subterfuge
     buffer[378] = function(targetId)
-        return 30;
+        return 30, 509;
     end
 
     --Chocobo Jig II
@@ -1745,73 +1720,73 @@ local function Initialize(tracker, buffer)
             [23617] = 0.5 --Horos Tights +3
         };
         local duration = 120;
-        duration = duration * (1 + gData.EquipSum(multipliers));
-        return duration;
+        duration = duration * (1 + dataTracker:EquipSum(multipliers));
+        return duration, 176;
     end
 
     --Contradance
     buffer[384] = function(targetId)
-        return 60;
+        return 60, 582;
     end
 
     --Apogee
     buffer[385] = function(targetId)
-        return 60;
+        return 60, 583;
     end
 
     --Entrust
     buffer[386] = function(targetId)
-        return 60;
+        return 60, 584;
     end
 
     --Cascade
     buffer[388] = function(targetId)
-        return 60;
+        return 60, 598;
     end
 
     --Consume Mana
     buffer[389] = function(targetId)
-        return 60;
+        return 60, 599;
     end
 
     --Naturalist's Roll
     buffer[390] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 339;
     end
 
     --Runeist's Roll
     buffer[391] = function(targetId)
-        return CalculateCorsairRollDuration();
+        return CalculateCorsairRollDuration(), 600;
     end
 
     --Crooked Cards
     buffer[392] = function(targetId)
-        return 60;
+        return 60, 601;
     end
 
     --Spirit Bond
     buffer[393] = function(targetId)
-        return 180;
+        return 180, 619;
     end
 
     --Majesty
     buffer[394] = function(targetId)
-        return 180;
+        return 180, 621;
     end
 
     --Hover Shot
     buffer[395] = function(targetId)
-        return 3600;
+        return 3600, 628;
     end
 
     --Shining Ruby
     buffer[514] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 154;
     end
 
     --Glittering Ruby
     buffer[515] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), 0;
     end
 
     --[[UNKNOWN
@@ -1830,37 +1805,37 @@ local function Initialize(tracker, buffer)
 
     --Reraise II
     buffer[526] = function(targetId)
-        return 3600;
+        return 3600, 113;
     end
 
     --Ecliptic Growl
     buffer[532] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), T{80, 81, 82, 83, 84, 85, 86 };
     end
 
     --Ecliptic Howl
     buffer[533] = function(targetId)
-        return CalculateBloodPactDuration(180);
+        return CalculateBloodPactDuration(180), T{ 90, 92 };
     end
 
     --Heavenward Howl
     buffer[538] = function(targetId)
-        return CalculateBloodPactDuration(60);
+        return CalculateBloodPactDuration(60), T{ 487, 488 };
     end
 
     --Crimson Howl
     buffer[548] = function(targetId)
-        return CalculateBloodPactDuration(60);
+        return CalculateBloodPactDuration(60), 68;
     end
 
     --Inferno Howl
     buffer[553] = function(targetId)
-        return CalculateBloodPactDuration(60);
+        return CalculateBloodPactDuration(60), 94;
     end
 
     --Conflag Strike
     buffer[554] = function(targetId)
-        return 60;
+        return 60, 128;
     end
 
     --[[UNKNOWN
@@ -1872,7 +1847,7 @@ local function Initialize(tracker, buffer)
     
     --Rock Buster
     buffer[562] = function(targetId)
-        return 30;
+        return 30, 11;
     end
 
     --[[UNKNOWN
@@ -1884,12 +1859,7 @@ local function Initialize(tracker, buffer)
 
     --Earthen Ward
     buffer[564] = function(targetId)
-        return 900;
-    end
-
-    --Stone IV
-    buffer[565] = function(targetId)
-        return nil;
+        return 900, 37;
     end
 
     --[[UNKNOWN
@@ -1901,7 +1871,7 @@ local function Initialize(tracker, buffer)
 
     --Earthen Armor
     buffer[569] = function(targetId)
-        return CalculateBloodPactDuration(60);
+        return CalculateBloodPactDuration(60), 458;
     end
 
     --Crag Throw
@@ -2010,7 +1980,8 @@ local function Initialize(tracker, buffer)
 
     --Perfect Defense
     buffer[671] = function(targetId)
-        return 30 + math.floor(gData.GetCombatSkill(38) / 20);
+        local summoning = AshitaCore:GetMemoryManager():GetPlayer():GetCombatSkill(38):GetSkill();
+        return 30 + math.floor(summoning / 20);
     end
 
     --Secretion

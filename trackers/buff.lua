@@ -190,7 +190,7 @@ local function HandleSpellComplete(packet)
 end
 
 local function HandleAbilityComplete(packet)
-
+;
 end
 
 local function HandlePartyBuffs(packet)

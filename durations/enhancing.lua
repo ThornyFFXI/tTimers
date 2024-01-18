@@ -862,8 +862,7 @@ local function Initialize(tracker, buffer)
 
     --Haste II
     buffer[511] = function(targetId)
-        return math.random(15, 45), 33;
-        --return CalculateEnhancingDuration(180, targetId), 33;
+        return CalculateEnhancingDuration(180, targetId), 33;
     end
 
     --Foil
