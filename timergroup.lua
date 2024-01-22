@@ -72,13 +72,20 @@ function TimerGroup:HandleMouse(e)
     end
 
     if (e.message == 513) then
-        if (self.Settings.ShiftCancel) and (IsShiftPressed()) then
+        if (self.Settings.CtrlBlock) and (IsControlPressed()) then
             local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
             if renderData then
                 renderData.Local.Delete = true;
-                if (IsControlPressed()) then
-                    renderData.Local.Block = true;
-                end
+                renderData.Local.Block = true;
+                e.blocked = true;
+                self.MouseBlocked = true;
+                return;
+            end
+
+        elseif (self.Settings.ShiftCancel) and (IsShiftPressed()) then
+            local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
+            if renderData then
+                renderData.Local.Delete = true;
                 e.blocked = true;
                 self.MouseBlocked = true;
                 return;
@@ -169,7 +176,7 @@ function TimerGroup:Render(timers)
 end
 
 function TimerGroup:RenderTooltip();
-    if (not self.AllowDrag) and (self.Settings.UseTooltips) then
+    if (self.Settings.UseTooltips) then
         local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
         if renderData then
             self.TimerRenderer:DrawTooltip({ X = self.Mouse.X, Y = self.Mouse.Y }, renderData);

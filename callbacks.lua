@@ -68,6 +68,22 @@ ashita.events.register('command', 'command_cb', function (e)
     end
 
     if (#args > 1) then
+        if (args[2] == 'reposition') then
+            for name,panel in pairs(gPanels) do
+                panel.AllowDrag = true;
+                panel.ShowDebugTimers = true;
+            end
+        end
+        
+        if (args[2] == 'lock') then
+            for name,panel in pairs(gPanels) do
+                panel.AllowDrag = false;
+                panel.ShowDebugTimers = false;
+            end
+        end
+
+
+
         if (args[2] == 'custom') then
             if (#args >= 4) then
                 local duration;

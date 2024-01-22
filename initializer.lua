@@ -25,15 +25,20 @@ chat = require('chat');
 gTextureCache    = require('texturecache');
 settings         = require('settings');
 
+local baseX = 0;
+local baseY = 250;
+
 --Initialize Settings..
 gDefaultSettings = T{
+    read_only = true,
     Buff = T{
         Enabled = true,
-        Position = T{ X=80, Y=290 },
+        Position = T{ X=baseX, Y=baseY },
         Renderer = 'classic',
-        Scale = 1.25,
+        Scale = 1,
         MaxTimers = 10,
         ShiftCancel = true,
+        CtrlBlock = true,
         CountDown = true,
         ReverseColors = true,
         ShowTenths = true,
@@ -48,16 +53,19 @@ gDefaultSettings = T{
         Blocked = T{
             --Add reasonable defaults..
         },
-        Skin = T{},
+        Skin = T{
+            ["classic"] = "windower_bottom_justified";
+        },
     },
     
     Debuff = T{
         Enabled = true,
-        Position = T{ X=80, Y=291 },
+        Position = T{ X=baseX, Y=baseY },
         Renderer = 'classic',
-        Scale = 1.25,
+        Scale = 1,
         MaxTimers = 10,
         ShiftCancel = true,
+        CtrlBlock = true,
         CountDown = true,
         ReverseColors = true,
         ShowTenths = true,
@@ -73,11 +81,12 @@ gDefaultSettings = T{
     
     Recast = T{
         Enabled = true,
-        Position = T{ X=294, Y=290 },
+        Position = T{ X=baseX+216, Y=baseY },
         Renderer = 'classic',
-        Scale = 1.25,
+        Scale = 1,
         MaxTimers = 10,
         ShiftCancel = true,
+        CtrlBlock = true,
         CountDown = false,
         ReverseColors = false,
         ShowTenths = true,
@@ -91,16 +100,19 @@ gDefaultSettings = T{
         BlockedSpells = T{
             --Defaults to empty..
         },
-        Skin = T{},
+        Skin = T{
+            ["classic"] = "windower_bottom_justified";
+        },
     },
     
     Custom = T{
         Enabled = true,
-        Position = T{ X=294, Y=291 },
+        Position = T{ X=baseX+216, Y=baseY },
         Renderer = 'classic',
-        Scale = 1.25,
+        Scale = 1,
         MaxTimers = 10,
         ShiftCancel = true,
+        CtrlBlock = true,
         CountDown = false,
         ReverseColors = false,
         ShowTenths = true,

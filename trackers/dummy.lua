@@ -22,6 +22,7 @@ SOFTWARE.
 
 local tracker = {};
 local times = T{ 0, 10, 20, 30, 60, 300, 600, 1200, 3600 };
+
 local panelState = {};
 function tracker:Tick(panelName)
     local state = panelState[panelName];
@@ -30,29 +31,47 @@ function tracker:Tick(panelName)
     if (state == nil) or (os.clock() > state.Reset) or (max ~= state.Max) then
         local newState = {
             ActiveTimers = T{},
+            Blocks = T{};
             Max = max,
-            Reset = os.clock() + 30,
+            Reset = os.clock() + math.random(25,35),
         };
-        for i = 1,max+1 do
+        if (state) then
+            newState.Blocks = state.Blocks;
+            newState.Icon = state.Icon;
+        else
+            newState.Icon = string.format('STATUS:%u', math.random(1, 500));
+        end
+        for i = 1,max do
             local duration = times[i];
             if duration == nil then
-                duration = times[#times];
+                duration = times[#times] + ((math.random(1, 100) / 10));
             end
 
             local newCustomTimer = {
                 Creation = os.clock(),
+                Icon = string.format('STATUS:%u', math.random(1, 500)),
                 Label = string.format('Dummy %s %u', panelName, i),
                 Local = T{},
                 Expiration = os.clock() + duration,
                 Tooltip = string.format('You are now hovering over Dummy %s %u.', panelName, i);
                 TotalDuration = duration,
             };
-            newState.ActiveTimers:append(newCustomTimer);
+            if (newState.Blocks[newCustomTimer.Label] == nil) then
+                newState.ActiveTimers:append(newCustomTimer);
+            end
         end
         state = newState;
         panelState[panelName] = state;
     end
 
+    for _,timer in ipairs(state.ActiveTimers) do
+        if (timer.Local.Block) then
+            timer.Local.Delete = true;
+            state.Blocks[timer.Label] = true;
+            print(chat.header('tTimers') .. chat.message('Blocked ' .. timer.Label));
+            timer.Local.Block = nil;
+        end
+    end
     state.ActiveTimers = state.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
     state.ActiveTimers:each(function(a) a.Duration = a.Expiration - time; end);
     return state.ActiveTimers;

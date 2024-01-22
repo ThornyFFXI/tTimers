@@ -69,7 +69,12 @@ function config:GetRenderers(settings)
     end
 end
 
-function config:GetSkins(panel)
+function config:GetSkins(panel, force)
+    if (panel == self.State.ActivePanel) and (not force) then
+        return;
+    end
+
+    self.State.ActivePanel = panel;
     if (type(panel.TimerRenderer.LoadSkin) ~= 'function') then
         self.State.Skins = nil;
         return;
@@ -105,6 +110,137 @@ function config:GetSkins(panel)
     end
 end
 
+function config:DrawPanelTab(panelName)
+    if imgui.BeginTabItem(string.format('%s##tTimersConfig%sTab', panelName, panelName)) then
+        local panelSettings = gSettings[panelName];
+        local panel = gPanels[panelName];
+        local state = self.State;
+        self:GetSkins(panel, false);
+
+        if (self.State.Skins ~= nil) then
+            imgui.TextColored(header, 'Panel Skin');
+            imgui.ShowHelp('Allows you to choose a skin to modify your current renderer.  Not all renderers are required to provide skins.');
+            if (imgui.BeginCombo(string.format('##tTimersSkinSelection_%s', panelName), state.Skins[state.SelectedSkin], ImGuiComboFlags_None)) then
+                for index,skin in ipairs(state.Skins) do
+                    if (imgui.Selectable(skin, index == state.SelectedSkin)) then
+                        state.SelectedSkin = index;
+                        panelSettings.Skin[panelSettings.Renderer] = skin;                                    
+                        local skinPath = GetFilePath(string.format('skins/%s/%s.lua', panelSettings.Renderer, skin));
+                        skinPath = GetFilePath(skinPath);
+                        panel:UpdateSkin(LoadFile_s(skinPath));
+                        settings.save();
+                    end
+                end
+                imgui.EndCombo();
+            end
+        end
+        imgui.TextColored(header, 'Draw Scale');
+        imgui.ShowHelp('Allows you to resize the timer panel.');
+        local buffer = { panelSettings.Scale };
+        if (imgui.SliderFloat(string.format('##tTimersDrawScale_%s', panelName), buffer, 0.5, 3, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
+            panelSettings.Scale = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        
+        imgui.TextColored(header, 'Max Timers');
+        imgui.ShowHelp('Determines the max number of timers to be shown at a time.');
+        buffer = { panelSettings.MaxTimers };
+        if (imgui.SliderInt(string.format('##tTimersMaxTimers_%s', panelName), buffer, 1, 20, '%u', ImGuiSliderFlags_AlwaysClamp)) then
+            panelSettings.MaxTimers = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        
+        imgui.TextColored(header, 'Completion Animation');
+        imgui.ShowHelp('When enabled, timers will animate upon completion, for the specified duration in seconds, before disappearing.');
+        buffer = { panelSettings.AnimateCompletion };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Animate Completion', panelName, 'AnimateCompletion'), buffer)) then
+            panelSettings.AnimateCompletion = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        buffer = { panelSettings.CompletionDuration };
+        if (imgui.SliderFloat(string.format('##tTimersCompletionDuration_%s', panelName), buffer, 0.5, 6, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
+            panelSettings.CompletionDuration = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        
+        imgui.TextColored(header, 'Sort Type');
+        imgui.ShowHelp('Determines the order timers will be displayed in.');
+        if (imgui.BeginCombo(string.format('##tTimersSortSelection_%s', panelName), sortTypes[state.SelectedSort], ImGuiComboFlags_None)) then
+            for index,sortType in ipairs(sortTypes) do
+                if (imgui.Selectable(sortType, index == state.SelectedSort)) then
+                    state.SelectedSort = index;
+                    panelSettings.SortType = sortType;
+                    panel:UpdateSettings(panelSettings);
+                    settings.save();
+                end
+            end
+            imgui.EndCombo();
+        end
+
+        imgui.TextColored(header, 'General');
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Enabled', panelName, 'Enabled'), { panelSettings.Enabled })) then
+            panelSettings.Enabled = not panelSettings.Enabled;
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('If not enabled, this panel won\'t show at all.');
+        
+        buffer = { panelSettings.ShiftCancel };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Allow Cancel', panelName, 'ShiftCancel'), buffer)) then
+            panelSettings.ShiftCancel = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, shift-clicking a timer will remove it immediately.');
+        
+        buffer = { panelSettings.CtrlBlock };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Allow Block', panelName, 'CtrlBlock'), buffer)) then
+            panelSettings.CtrlBlock = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, ctrl-clicking a timer will remove it and block that same timer from reappearing in the future.');
+        
+        buffer = { panelSettings.CountDown };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Count Down', panelName, 'CountDown'), buffer)) then
+            panelSettings.CountDown = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, timers will begin full and count down to 0.');
+        
+        buffer = { panelSettings.ReverseColors };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Reverse Colors', panelName, 'ReverseColors'), buffer)) then
+            panelSettings.ReverseColors = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, high and low colors are flipped.');
+        
+        
+        buffer = { panelSettings.ShowTenths };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Show Tenths', panelName, 'ShowTenths'), buffer)) then
+            panelSettings.ShowTenths = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, recast numbers will show 1/10 seconds when less than a minute remains.');
+        
+        buffer = { panelSettings.UseTooltips };
+        if (imgui.Checkbox(string.format('%s##tTimersConfig_%s_%s', 'Show Tooltips', panelName, 'ShowTooltips'), buffer)) then
+            panelSettings.UseTooltips = buffer[1];
+            panel:UpdateSettings(panelSettings);
+            settings.save();
+        end
+        imgui.ShowHelp('When enabled, hovering your mouse over a timer will show a tooltip if available.');
+        imgui.EndTabItem();
+    end
+end
+
 
 function config:Render()
     local state = self.State;
@@ -113,224 +249,23 @@ function config:Render()
         if (imgui.Begin(string.format('%s v%s Configuration', addon.name, addon.version), state.IsOpen, ImGuiWindowFlags_AlwaysAutoResize)) then
             imgui.BeginGroup();
             if imgui.BeginTabBar('##tTimersConfigTabBar', ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) then
-                if imgui.BeginTabItem('Panels##tTimersConfigLayoutsTab') then
-                    imgui.TextColored(header, 'Panel Type');
-                    imgui.ShowHelp('Allows you to select which panel\'s settings you wish to change.');
-                    if (imgui.BeginCombo('##tTimersPanelSelection', panels[state.SelectedPanel], ImGuiComboFlags_None)) then
-                        for index,panelName in ipairs(panels) do
-                            if (imgui.Selectable(panelName, index == state.SelectedPanel)) then
-                                state.SelectedPanel = index;
-                                self:GetRenderers(gPanels[panelName].Settings);
-                                self:GetSkins(gPanels[panels[state.SelectedPanel]]);
-                            end
-                        end
-                        imgui.EndCombo();
-                    end
+                self:DrawPanelTab('Buff');
+                self:DrawPanelTab('Debuff');
+                self:DrawPanelTab('Recast');
+                self:DrawPanelTab('Custom');
 
-                    local panelName = panels[state.SelectedPanel];
-                    local panelSettings = gSettings[panelName];
-                    local panel = gPanels[panelName];
-                    
-                    imgui.TextColored(header, 'Panel Renderer');
-                    imgui.ShowHelp('Allows you to choose which renderer will draw the timer elements.');
-                    if (imgui.BeginCombo('##tTimersRendererSelection', state.Renderers[state.SelectedRenderer], ImGuiComboFlags_None)) then
-                        for index,renderer in ipairs(state.Renderers) do
-                            if (imgui.Selectable(renderer, index == state.SelectedRenderer)) then
-                                state.SelectedRenderer = index;
-                                panelSettings.Renderer = renderer;
-                                panel:UpdateSettings(panelSettings, true);
-                                self:GetSkins(panel);
-                                settings.save();
-                            end
-                        end
-                        imgui.EndCombo();
-                    end
-
-                    if (self.State.Skins ~= nil) then                        
-                        imgui.TextColored(header, 'Panel Skin');
-                        imgui.ShowHelp('Allows you to choose a skin to modify your current renderer.  Not all renderers are required to provide skins.');
-                        if (imgui.BeginCombo('##tTimersSkinSelection', state.Skins[state.SelectedSkin], ImGuiComboFlags_None)) then
-                            for index,skin in ipairs(state.Skins) do
-                                if (imgui.Selectable(skin, index == state.SelectedSkin)) then
-                                    state.SelectedSkin = index;
-                                    panelSettings.Skin[panelSettings.Renderer] = skin;                                    
-                                    local skinPath = GetFilePath(string.format('skins/%s/%s.lua', panelSettings.Renderer, skin));
-                                    skinPath = GetFilePath(skinPath);
-                                    panel:UpdateSkin(LoadFile_s(skinPath));
-                                    settings.save();
-                                end
-                            end
-                            imgui.EndCombo();
-                        end
-                    end
-                    imgui.TextColored(header, 'Draw Scale');
-                    imgui.ShowHelp('Allows you to resize the timer panel.');
-                    local buffer = { panelSettings.Scale };
-                    if (imgui.SliderFloat('##tTimersDrawScale', buffer, 0.5, 3, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
-                        panelSettings.Scale = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    
-                    imgui.TextColored(header, 'Max Timers');
-                    imgui.ShowHelp('Determines the max number of timers to be shown at a time.');
-                    buffer = { panelSettings.MaxTimers };
-                    if (imgui.SliderInt('##tTimersMaxTimers', buffer, 1, 20, '%u', ImGuiSliderFlags_AlwaysClamp)) then
-                        panelSettings.MaxTimers = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    
-                    imgui.TextColored(header, 'Completion Animation');
-                    imgui.ShowHelp('When enabled, timers will animate upon completion, for the specified duration in seconds, before disappearing.');
-                    buffer = { panelSettings.AnimateCompletion };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Animate Completion', 'AnimateCompletion'), buffer)) then
-                        panelSettings.AnimateCompletion = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    buffer = { panelSettings.CompletionDuration };
-                    if (imgui.SliderFloat('##tTimersCompletionDuration', buffer, 0.5, 6, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
-                        panelSettings.CompletionDuration = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    
-                    imgui.TextColored(header, 'Sort Type');
-                    imgui.ShowHelp('Determines the order timers will be displayed in.');
-                    if (imgui.BeginCombo('##tTimersSortSelection', sortTypes[state.SelectedSort], ImGuiComboFlags_None)) then
-                        for index,sortType in ipairs(sortTypes) do
-                            if (imgui.Selectable(sortType, index == state.SelectedSort)) then
-                                state.SelectedSort = index;
-                                panelSettings.SortType = sortType;
-                                panel:UpdateSettings(panelSettings);
-                                settings.save();
-                            end
-                        end
-                        imgui.EndCombo();
-                    end
-
-                    imgui.TextColored(header, 'General');
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Enabled', 'Enabled'), { panelSettings.Enabled })) then
-                        panelSettings.Enabled = not panelSettings.Enabled;
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('If not enabled, this panel won\'t show at all.');
-                    
-                    buffer[1] = panel.AllowDrag;
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Allow Drag', 'AllowDrag'), buffer)) then
-                        panel.AllowDrag = buffer[1];
-                    end
-                    imgui.ShowHelp('When enabled, you can drag the timer panel around.  This will end when config window is closed or another panel is selected.');
-                    buffer[1] = panel.ShowDebugTimers;
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Debug Timers', 'ShowDebugTimers'), buffer)) then
-                        panel.ShowDebugTimers = buffer[1];
-                    end
-                    imgui.ShowHelp('When enabled, the timer panel will be filled with debug timers.  This will end when config window is closed or another panel is selected.  Dummy timers will self-reset every 30 seconds.');
-                    
-                    imgui.TextColored(header, 'Behavior');
-                    buffer = { panelSettings.ShiftCancel };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Allow Cancel', 'ShiftCancel'), buffer)) then
-                        panelSettings.ShiftCancel = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('When enabled, shift-clicking a timer will remove it immediately.');
-                    
-                    buffer = { panelSettings.CountDown };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Count Down', 'CountDown'), buffer)) then
-                        panelSettings.CountDown = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('When enabled, timers will begin full and count down to 0.');
-                    
-                    buffer = { panelSettings.ReverseColors };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Reverse Colors', 'ReverseColors'), buffer)) then
-                        panelSettings.ReverseColors = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('When enabled, high and low colors are flipped.');
-                    
-                    
-                    buffer = { panelSettings.ShowTenths };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Tenths', 'ShowTenths'), buffer)) then
-                        panelSettings.ShowTenths = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('When enabled, recast numbers will show 1/10 seconds when less than a minute remains.');
-                    
-                    buffer = { panelSettings.UseTooltips };
-                    if (imgui.Checkbox(string.format('%s##tTimersConfig_%s', 'Show Tooltips', 'ShowTooltips'), buffer)) then
-                        panelSettings.UseTooltips = buffer[1];
-                        panel:UpdateSettings(panelSettings);
-                        settings.save();
-                    end
-                    imgui.ShowHelp('When enabled, hovering your mouse over a timer will show a tooltip if available.');
-                    
-
-                    if (imgui.Button('Edit Colors##tTimersEditColors')) then
-                        
-                    end
-                    imgui.SameLine();
-                    if (imgui.Button('Copy To All Panels##tTimersCopyToPanels')) then
-                        for _,panel in ipairs(panels) do
-                            local targetSettings = gSettings[panel];
-                            for key,value in pairs(panelSettings) do
-                                if (key ~= 'Position') and (key ~= 'Enabled') then
-                                    if type(value) == 'table' then
-                                        targetSettings[key] = value:copy(true);
-                                    else
-                                        targetSettings[key] = value;
-                                    end
-                                end
-                            end
-                            gPanels[panel]:UpdateSettings(targetSettings, true);
-                        end
-                        settings.save();
-                    end
-                    
-                    if (imgui.Button('Defaults(This Panel)##tTimersDefaultThis')) then                        
-                        gSettings[panelName] = gDefaultSettings[panelName]:copy(true);
-                        gPanels[panelName]:UpdateSettings(gSettings[panelName], true);
-                        settings.save();
-                        self:GetRenderers(gPanels[panelName].Settings);
-                    end
-                    imgui.SameLine();
-                    if (imgui.Button('Defaults(All Panels)##tTimersDefaultAll')) then
-                        for _,panel in ipairs(panels) do
-                            gSettings[panel] = gDefaultSettings[panel]:copy(true);
-                            gPanels[panel]:UpdateSettings(gSettings[panel], true);
-                        end
-                        settings.save();
-                        self:GetRenderers(gPanels[panelName].Settings);
-                    end
-
-                    imgui.EndTabItem();
-                end
-                
-                if imgui.BeginTabItem('Buffs##tTimersConfigBuffsTab') then
+                if imgui.BeginTabItem(string.format('Behavior##tTimersConfigBehaviorTab')) then
+                    imgui.TextColored(header, 'Buffs');
                     if (imgui.Checkbox(string.format('Split By Duration##tTimersConfigBuffs_SplitByDuration', 'Enabled', 'Enabled'), { gSettings.Buff.SplitBuffsByDuration })) then
                         gSettings.Buff.SplitBuffsByDuration = not gSettings.Buff.SplitBuffsByDuration;
                         settings.save();
                     end
-                    imgui.ShowHelp('If enabled, the same spell will show up multiple times for each different duration.');
+                    imgui.ShowHelp('If enabled, the same buff will show up multiple times for each different duration.');
                     imgui.EndTabItem();
                 end
-
                 imgui.EndTabBar();
             end
             imgui.End();
-        end
-        
-        if (state.IsOpen[1] == false) then
-            for name,panel in pairs(gPanels) do
-                panel.AllowDrag = false;
-                panel.ShowDebugTimers = false;
-            end
         end
     end
 
