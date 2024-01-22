@@ -25,6 +25,7 @@ local equipment = {};
 local player = {
     Id = 0,
     Name = 'Unknown',
+    TP = 1000,
     Job = {
         Main = 0,
         MainLevel = 0,
@@ -119,13 +120,24 @@ ashita.events.register('packet_in', 'duration_lib_data_handleincomingpacket', fu
                     SubLevel = 0
                 },
                 JobPoints = {},
-                JobPointInit = { Categories = false, Totals = false, Timer = os.clock() + 10 }
+                JobPointInit = { Categories = false, Totals = false, Timer = os.clock() + 10 },
+                TP = 1000,
             };
         else
             player.Job.Main = job;
             player.Job.Sub = sub;
         end
-        equipment = {};
+        equipment = {};        
+    elseif (e.id == 0x0DD) or (e.id == 0x0DF) or (e.id == 0x0E2) then
+        --Storing the last recorded TP value for use in calculating duration of buff/debuff WS.
+        if (struct.unpack('L', e.data, 0x04 + 1) == player.Id) then
+            local tp = struct.unpack('L', e.data, 0x10 + 1);
+            if tp >= 1000 then
+                player.TP = tp;
+            else
+                player.TP = 1000;
+            end
+        end
     elseif (e.id == 0x01B) then
         local job = struct.unpack('B', e.data, 0x08 + 1);
         local sub = struct.unpack('B', e.data, 0x0B + 1);
@@ -362,6 +374,10 @@ end
 function exports:ParseAugments()
     UpdateEquippedSet();
     return augments:Parse(player.Job.MainLevel, equippedSet);
+end
+
+function exports:GetWeaponskillCost()
+    return player.TP;
 end
 
 return exports;

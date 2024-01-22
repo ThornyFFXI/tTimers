@@ -49,7 +49,7 @@ local function CalculateCorsairRollDuration()
     local duration = 300;
     local augments = dataTracker:ParseAugments();
     duration = duration + dataTracker:EquipSum(rollDuration);
-    duration = duration + augments.PhantomRoll;
+    duration = duration + (augments.PhantomRoll or 0);
     if (dataTracker:GetJobData().Main == 17) and (dataTracker:GetJobData().MainLevel >= 75) then
         local merits = dataTracker:GetMeritCount(0xC04);
         local multiplier = 20;
@@ -674,10 +674,13 @@ local function Initialize(tracker, buffer)
             [18733] = 45, --Automat. Oil +2
             [19185] = 60 --Automat. Oil +3
         };
-        local oil = dataTracker:GetEquipmentTable()[4].Id;
-        local duration = oilDuration[oil];
-        if duration then
-            return duration, 0;
+        local ammo = dataTracker:GetEquippedSet()[4];
+        if ammo then
+            local oil = ammo.Id;
+            local duration = oilDuration[oil];
+            if duration then
+                return duration, 0;
+            end
         end
     end
     

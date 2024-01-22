@@ -19,182 +19,185 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
 	--Banish
-	spellTable[28] = function(targetId)
+	buffer[28] = function(targetId)
 		return 15;
 	end
 
 	--Banish II
-	spellTable[29] = function(targetId)
+	buffer[29] = function(targetId)
 		return 30;
 	end
 
 	--Banish III
-	spellTable[30] = function(targetId)
+	buffer[30] = function(targetId)
 		return 45;
 	end
 
 	--Banishga
-	spellTable[38] = function(targetId)
+	buffer[38] = function(targetId)
 		return 15;
 	end
 
 	--Banishga II
-	spellTable[39] = function(targetId)
+	buffer[39] = function(targetId)
 		return 30;
 	end
 
 	--Flare
-	spellTable[204] = function(targetId)
+	buffer[204] = function(targetId)
 		return 10;
 	end
 
 	--Flare II
-	spellTable[205] = function(targetId)
+	buffer[205] = function(targetId)
 		return 10;
 	end
 
 	--Freeze
-	spellTable[206] = function(targetId)
+	buffer[206] = function(targetId)
 		return 10;
 	end
 
 	--Freeze II
-	spellTable[207] = function(targetId)
+	buffer[207] = function(targetId)
 		return 10;
 	end
 
 	--Tornado
-	spellTable[208] = function(targetId)
+	buffer[208] = function(targetId)
 		return 10;
 	end
 
 	--Tornado II
-	spellTable[209] = function(targetId)
+	buffer[209] = function(targetId)
 		return 10;
 	end
 
 	--Quake
-	spellTable[210] = function(targetId)
+	buffer[210] = function(targetId)
 		return 10;
 	end
 
 	--Quake II
-	spellTable[211] = function(targetId)
+	buffer[211] = function(targetId)
 		return 10;
 	end
 
 	--Burst
-	spellTable[212] = function(targetId)
+	buffer[212] = function(targetId)
 		return 10;
 	end
 
 	--Burst II
-	spellTable[213] = function(targetId)
+	buffer[213] = function(targetId)
 		return 10;
 	end
 
 	--Flood
-	spellTable[214] = function(targetId)
+	buffer[214] = function(targetId)
 		return 10;
 	end
 
 	--Flood II
-	spellTable[215] = function(targetId)
+	buffer[215] = function(targetId)
 		return 10;
 	end
     
 	--Katon: Ichi
-	spellTable[320] = function(targetId)
+	buffer[320] = function(targetId)
 		return 10;
 	end
 
 	--Katon: Ni
-	spellTable[321] = function(targetId)
+	buffer[321] = function(targetId)
 		return 10;
 	end
 
 	--Katon: San
-	spellTable[322] = function(targetId)
+	buffer[322] = function(targetId)
 		return 10;
 	end
 
 	--Hyoton: Ichi
-	spellTable[323] = function(targetId)
+	buffer[323] = function(targetId)
 		return 10;
 	end
 
 	--Hyoton: Ni
-	spellTable[324] = function(targetId)
+	buffer[324] = function(targetId)
 		return 10;
 	end
 
 	--Hyoton: San
-	spellTable[325] = function(targetId)
+	buffer[325] = function(targetId)
 		return 10;
 	end
 
 	--Huton: Ichi
-	spellTable[326] = function(targetId)
+	buffer[326] = function(targetId)
 		return 10;
 	end
 
 	--Huton: Ni
-	spellTable[327] = function(targetId)
+	buffer[327] = function(targetId)
 		return 10;
 	end
 
 	--Huton: San
-	spellTable[328] = function(targetId)
+	buffer[328] = function(targetId)
 		return 10;
 	end
 
 	--Doton: Ichi
-	spellTable[329] = function(targetId)
+	buffer[329] = function(targetId)
 		return 10;
 	end
 
 	--Doton: Ni
-	spellTable[330] = function(targetId)
+	buffer[330] = function(targetId)
 		return 10;
 	end
 
 	--Doton: San
-	spellTable[331] = function(targetId)
+	buffer[331] = function(targetId)
 		return 10;
 	end
 
 	--Raiton: Ichi
-	spellTable[332] = function(targetId)
+	buffer[332] = function(targetId)
 		return 10;
 	end
 
 	--Raiton: Ni
-	spellTable[333] = function(targetId)
+	buffer[333] = function(targetId)
 		return 10;
 	end
 
 	--Raiton: San
-	spellTable[334] = function(targetId)
+	buffer[334] = function(targetId)
 		return 10;
 	end
 
 	--Suiton: Ichi
-	spellTable[335] = function(targetId)
+	buffer[335] = function(targetId)
 		return 10;
 	end
 
 	--Suiton: Ni
-	spellTable[336] = function(targetId)
+	buffer[336] = function(targetId)
 		return 10;
 	end
 
 	--Suiton: San
-	spellTable[337] = function(targetId)
+	buffer[337] = function(targetId)
 		return 10;
 	end
 end
 
-return FillSpellTable;
+return Initialize;

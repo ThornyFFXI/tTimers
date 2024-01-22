@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
 local indiDuration = {
     [21085] = 15, --Solstice
@@ -32,13 +33,14 @@ local indiDuration = {
 };
 
 local function CalculateGeomancyDuration(targetId)
-    local augments = gData.ParseAugments();
-    return (600 * augments.GeomancyDuration);
+    local augments = dataTracker:ParseAugments();
+    local multiplier = 1 + (augments.GeomancyDuration or 0);
+    return (600 * multiplier);
 end
 
 local function CalculateIndicolureDuration(targetId)
-    local augments = gData.ParseAugments();
-    local duration = 180 + gData.EquipSum(indiDuration);
+    local augments = dataTracker:ParseAugments();
+    local duration = 180 + dataTracker:EquipSum(indiDuration);
     local indiduration = augments.Generic[0x4E2];
     if indiDuration then
         local multiplier = 1.00;
@@ -50,306 +52,308 @@ local function CalculateIndicolureDuration(targetId)
     return duration;
 end
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Indi-Regen
-    spellTable[768] = function(targetId)
+    buffer[768] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Poison
-    spellTable[769] = function(targetId)
+    buffer[769] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Refresh
-    spellTable[770] = function(targetId)
+    buffer[770] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Haste
-    spellTable[771] = function(targetId)
+    buffer[771] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-STR
-    spellTable[772] = function(targetId)
+    buffer[772] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-DEX
-    spellTable[773] = function(targetId)
+    buffer[773] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-VIT
-    spellTable[774] = function(targetId)
+    buffer[774] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-AGI
-    spellTable[775] = function(targetId)
+    buffer[775] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-INT
-    spellTable[776] = function(targetId)
+    buffer[776] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-MND
-    spellTable[777] = function(targetId)
+    buffer[777] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-CHR
-    spellTable[778] = function(targetId)
+    buffer[778] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Fury
-    spellTable[779] = function(targetId)
+    buffer[779] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Barrier
-    spellTable[780] = function(targetId)
+    buffer[780] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Acumen
-    spellTable[781] = function(targetId)
+    buffer[781] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Fend
-    spellTable[782] = function(targetId)
+    buffer[782] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Precision
-    spellTable[783] = function(targetId)
+    buffer[783] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Voidance
-    spellTable[784] = function(targetId)
+    buffer[784] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Focus
-    spellTable[785] = function(targetId)
+    buffer[785] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Attunement
-    spellTable[786] = function(targetId)
+    buffer[786] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Wilt
-    spellTable[787] = function(targetId)
+    buffer[787] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Frailty
-    spellTable[788] = function(targetId)
+    buffer[788] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Fade
-    spellTable[789] = function(targetId)
+    buffer[789] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Malaise
-    spellTable[790] = function(targetId)
+    buffer[790] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Slip
-    spellTable[791] = function(targetId)
+    buffer[791] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Torpor
-    spellTable[792] = function(targetId)
+    buffer[792] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Vex
-    spellTable[793] = function(targetId)
+    buffer[793] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Languor
-    spellTable[794] = function(targetId)
+    buffer[794] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Slow
-    spellTable[795] = function(targetId)
+    buffer[795] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Paralysis
-    spellTable[796] = function(targetId)
+    buffer[796] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Indi-Gravity
-    spellTable[797] = function(targetId)
+    buffer[797] = function(targetId)
         return CalculateIndicolureDuration(targetId);
     end
 
     --Geo-Regen
-    spellTable[798] = function(targetId)
+    buffer[798] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Poison
-    spellTable[799] = function(targetId)
+    buffer[799] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Refresh
-    spellTable[800] = function(targetId)
+    buffer[800] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Haste
-    spellTable[801] = function(targetId)
+    buffer[801] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-STR
-    spellTable[802] = function(targetId)
+    buffer[802] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-DEX
-    spellTable[803] = function(targetId)
+    buffer[803] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-VIT
-    spellTable[804] = function(targetId)
+    buffer[804] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-AGI
-    spellTable[805] = function(targetId)
+    buffer[805] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-INT
-    spellTable[806] = function(targetId)
+    buffer[806] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-MND
-    spellTable[807] = function(targetId)
+    buffer[807] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-CHR
-    spellTable[808] = function(targetId)
+    buffer[808] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Fury
-    spellTable[809] = function(targetId)
+    buffer[809] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Barrier
-    spellTable[810] = function(targetId)
+    buffer[810] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Acumen
-    spellTable[811] = function(targetId)
+    buffer[811] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Fend
-    spellTable[812] = function(targetId)
+    buffer[812] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Precision
-    spellTable[813] = function(targetId)
+    buffer[813] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Voidance
-    spellTable[814] = function(targetId)
+    buffer[814] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Focus
-    spellTable[815] = function(targetId)
+    buffer[815] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Attunement
-    spellTable[816] = function(targetId)
+    buffer[816] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Wilt
-    spellTable[817] = function(targetId)
+    buffer[817] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Frailty
-    spellTable[818] = function(targetId)
+    buffer[818] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Fade
-    spellTable[819] = function(targetId)
+    buffer[819] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Malaise
-    spellTable[820] = function(targetId)
+    buffer[820] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Slip
-    spellTable[821] = function(targetId)
+    buffer[821] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Torpor
-    spellTable[822] = function(targetId)
+    buffer[822] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Vex
-    spellTable[823] = function(targetId)
+    buffer[823] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Languor
-    spellTable[824] = function(targetId)
+    buffer[824] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Slow
-    spellTable[825] = function(targetId)
+    buffer[825] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Paralysis
-    spellTable[826] = function(targetId)
+    buffer[826] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 
     --Geo-Gravity
-    spellTable[827] = function(targetId)
+    buffer[827] = function(targetId)
         return CalculateGeomancyDuration(targetId);
     end
 end
 
-return FillSpellTable;
+return Initialize;

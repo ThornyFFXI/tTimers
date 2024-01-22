@@ -19,11 +19,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
-local function FillWeaponskillTable(weaponSkillTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Wasp Sting
-	weaponSkillTable[16] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[16] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 90 + ((tp - 1000) * .015);
         else
@@ -32,8 +35,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Viper Bite
-	weaponSkillTable[17] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[17] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 90 + ((tp - 1000) * .03);
         else
@@ -42,13 +45,13 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Mordant Rime
-	weaponSkillTable[28] = function(targetId)
+	buffer[28] = function(targetId)
 		return 60;
 	end
 
 	--Pyrrhic Kleos
-	weaponSkillTable[29] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[29] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 90 + ((tp - 1000) * .03);
         else
@@ -57,18 +60,18 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
     
 	--Rudra's Storm
-	weaponSkillTable[31] = function(targetId)
+	buffer[31] = function(targetId)
 		return 60;
 	end
 
 	--Death Blossom
-	weaponSkillTable[44] = function(targetId)
+	buffer[44] = function(targetId)
 		return 60;
 	end
 
 	--Shockwave
-	weaponSkillTable[52] = function(targetId)        
-		local tp = gData.GetWeaponskillCost();
+	buffer[52] = function(targetId)        
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -77,8 +80,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Herculean Slash
-	weaponSkillTable[58] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[58] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -87,8 +90,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Shield Break
-	weaponSkillTable[80] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[80] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .06);
         else
@@ -97,8 +100,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Armor Break
-	weaponSkillTable[83] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[83] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .18);
         else
@@ -107,8 +110,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Weapon Break
-	weaponSkillTable[85] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[85] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .06);
         else
@@ -117,8 +120,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Full Break
-	weaponSkillTable[87] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[87] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .18);
         else
@@ -127,13 +130,13 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Metatron Torment
-	weaponSkillTable[89] = function(targetId)
+	buffer[89] = function(targetId)
 		return 120;
 	end
 
 	--Nightmare Scythe
-	weaponSkillTable[99] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[99] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -142,8 +145,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Guillotine
-	weaponSkillTable[102] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[102] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .03);
         else
@@ -152,8 +155,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Infernal Scythe
-	weaponSkillTable[107] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[107] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .18);
         else
@@ -162,13 +165,13 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Stardiver
-	weaponSkillTable[125] = function(targetId)
+	buffer[125] = function(targetId)
 		return 60;
 	end
 
 	--Blade: Retsu
-	weaponSkillTable[129] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[129] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 30 + ((tp - 1000) * .03);
         else
@@ -177,8 +180,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Blade: Kamu
-	weaponSkillTable[138] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[138] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -187,8 +190,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Blade: Yu
-	weaponSkillTable[139] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[139] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 90 + ((tp - 1000) * .09);
         else
@@ -197,33 +200,33 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
     --Tachi: Yukikaze
-	weaponSkillTable[150] = function(targetId)
+	buffer[150] = function(targetId)
 		return 60;
 	end
 
 	--Tachi: Gekko
-	weaponSkillTable[151] = function(targetId)
+	buffer[151] = function(targetId)
 		return 45;
 	end
 
 	--Tachi: Kasha
-	weaponSkillTable[152] = function(targetId)
+	buffer[152] = function(targetId)
 		return 60;
 	end
 
 	--Tachi: Ageha
-	weaponSkillTable[155] = function(targetId)
+	buffer[155] = function(targetId)
 		return 180;
 	end
 
 	--Skullbreaker
-	weaponSkillTable[165] = function(targetId)
+	buffer[165] = function(targetId)
 		return 140;
 	end
 
 	--Shell Crusher
-	weaponSkillTable[181] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[181] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 180 + ((tp - 1000) * .18);
         else
@@ -232,13 +235,13 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Vidohunir
-	weaponSkillTable[186] = function(targetId)
+	buffer[186] = function(targetId)
 		return 60;
 	end
 
 	--Garland of Bliss
-	weaponSkillTable[187] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[187] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -247,13 +250,13 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Shattersoul
-	weaponSkillTable[191] = function(targetId)
+	buffer[191] = function(targetId)
 		return 120;
 	end
 
 	--Numbing Shot
-	weaponSkillTable[219] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[219] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 60 + ((tp - 1000) * .06);
         else
@@ -262,8 +265,8 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 
 	--Exenterator
-	weaponSkillTable[224] = function(targetId)
-		local tp = gData.GetWeaponskillCost();
+	buffer[224] = function(targetId)
+		local tp = dataTracker:GetWeaponskillCost();
         if (tp < 2000) then
             return 90 + ((tp - 1000) * .045);
         else
@@ -272,4 +275,4 @@ local function FillWeaponskillTable(weaponSkillTable)
 	end
 end
 
-return FillWeaponskillTable;
+return Initialize;

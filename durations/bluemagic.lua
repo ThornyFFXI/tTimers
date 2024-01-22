@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
+local dataTracker;
+
 
 --BLU can only wear a small subset of these but I copied the full tables for simplicity's sake, maybe eventually BLU sub will get high enough.
 local regenDuration = {
@@ -50,8 +52,8 @@ local refreshReceived = {
 
 local function ApplyDiffusion(duration)
     if (dataTracker:GetBuffActive(356)) then
-        local augments = gData.ParseAugments();
-        local merits = gData.GetMeritCount(0x0BC2);
+        local augments = dataTracker:ParseAugments();
+        local merits = dataTracker:GetMeritCount(0x0BC2);
         local multiplier = 1 + ((merits - 1) * 0.05);
         if (augments.Generic[0x58D]) then --Mirage Charuqs variants
             multiplier = multiplier + (merits * 0.05);
@@ -71,149 +73,151 @@ local function CalculateBlueMagicDuration(duration, diffusion, unbridled)
     return duration;
 end
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Metallic Body
-    spellTable[517] = function(targetId)
+    buffer[517] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);
     end
 
      --Refueling
-    spellTable[530] = function(targetId)
+    buffer[530] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);
     end
 
      --Memento Mori
-    spellTable[538] = function(targetId)
+    buffer[538] = function(targetId)
         return CalculateBlueMagicDuration(60, true, false);
     end
 
      --Cocoon
-    spellTable[547] = function(targetId)
+    buffer[547] = function(targetId)
         return CalculateBlueMagicDuration(90, true, false);
     end
 
      --Feather Barrier
-    spellTable[574] = function(targetId)
+    buffer[574] = function(targetId)
         return CalculateBlueMagicDuration(30, true, false);
     end
 
      --Reactor Cool
-    spellTable[613] = function(targetId)
+    buffer[613] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --Saline Coat
-    spellTable[614] = function(targetId)
+    buffer[614] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --Plasma Charge
-    spellTable[615] = function(targetId)
+    buffer[615] = function(targetId)
         return CalculateBlueMagicDuration(600, true, false); --Seems to be random between 10 and 15 minutes?
     end
 
      --Diamondhide
-    spellTable[632] = function(targetId)
+    buffer[632] = function(targetId)
         return CalculateBlueMagicDuration(900, false, false);
     end
 
      --Warm-Up
-    spellTable[636] = function(targetId)
+    buffer[636] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --Amplification
-    spellTable[642] = function(targetId)
+    buffer[642] = function(targetId)
         return CalculateBlueMagicDuration(90, true, false);
     end
 
      --Zephyr Mantle
-    spellTable[647] = function(targetId)
+    buffer[647] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);
     end
 
      --Triumphant Roar
-    spellTable[655] = function(targetId)
+    buffer[655] = function(targetId)
         return CalculateBlueMagicDuration(60, true, false);
     end
 
      --Plenilune Embrace
-    spellTable[658] = function(targetId)
+    buffer[658] = function(targetId)
         return CalculateBlueMagicDuration(90, false, false);
     end
 
      --Animating Wail
-    spellTable[661] = function(targetId)
+    buffer[661] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);
     end
 
      --Battery Charge
-    spellTable[662] = function(targetId)
+    buffer[662] = function(targetId)
         local duration = 300;
-        if gData.GetPlayerId() == targetId then
-            duration = duration + gData.EquipSum(refreshReceived);
+        if dataTracker:GetPlayerId() == targetId then
+            duration = duration + dataTracker:EquipSum(refreshReceived);
         end
         return CalculateBlueMagicDuration(duration, true, false);
     end
 
      --Regeneration
-    spellTable[664] = function(targetId)
-        local duration = 180 + gData.EquipSum(regenDuration);
+    buffer[664] = function(targetId)
+        local duration = 180 + dataTracker:EquipSum(regenDuration);
         return CalculateBlueMagicDuration(duration, true, false);        
     end
 
      --Magic Barrier
-    spellTable[668] = function(targetId)
+    buffer[668] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);
     end
 
      --Fantod
-    spellTable[674] = function(targetId)
+    buffer[674] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --Occultation
-    spellTable[679] = function(targetId)
+    buffer[679] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);        
     end
 
      --Barrier Tusk
-    spellTable[685] = function(targetId)
+    buffer[685] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --O. Counterstance
-    spellTable[696] = function(targetId)
+    buffer[696] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);        
     end
 
      --Nat. Meditation
-    spellTable[700] = function(targetId)
+    buffer[700] = function(targetId)
         return CalculateBlueMagicDuration(180, true, false);
     end
 
      --Erratic Flutter
-    spellTable[710] = function(targetId)
+    buffer[710] = function(targetId)
         return CalculateBlueMagicDuration(300, true, false);        
     end
 
      --Harden Shell
-    spellTable[737] = function(targetId)
+    buffer[737] = function(targetId)
         return CalculateBlueMagicDuration(180, true, true);
     end
 
      --Pyric Bulwark
-    spellTable[741] = function(targetId)
+    buffer[741] = function(targetId)
         return CalculateBlueMagicDuration(300, true, true);
     end
 
      --Carcharian Verve
-    spellTable[745] = function(targetId)
+    buffer[745] = function(targetId)
         return CalculateBlueMagicDuration(60, true, true); --This also has a 15 minute aquaveil, assuming that is less important than the attack bonus..?
     end
 
      --Mighty Guard
-    spellTable[750] = function(targetId)
+    buffer[750] = function(targetId)
         return CalculateBlueMagicDuration(180, true, true);        
     end
 
@@ -221,460 +225,460 @@ local function FillSpellTable(spellTable)
     Left this commented by default.
 
     --Venom Shell
-	spellTable[513] = function(targetId)
+	buffer[513] = function(targetId)
 		return 0;
 	end
 
 	--Maelstrom
-	spellTable[515] = function(targetId)
+	buffer[515] = function(targetId)
 		return 0;
 	end
 
 	--Sandspin
-	spellTable[524] = function(targetId)
+	buffer[524] = function(targetId)
 		return 0;
 	end
 
 	--Ice Break
-	spellTable[531] = function(targetId)
+	buffer[531] = function(targetId)
 		return 0;
 	end
 
 	--Blitzstrahl
-	spellTable[532] = function(targetId)
+	buffer[532] = function(targetId)
 		return 0;
 	end
 
 	--Mysterious Light
-	spellTable[534] = function(targetId)
+	buffer[534] = function(targetId)
 		return 0;
 	end
 
 	--Cold Wave
-	spellTable[535] = function(targetId)
+	buffer[535] = function(targetId)
 		return 0;
 	end
 
 	--Poison Breath
-	spellTable[536] = function(targetId)
+	buffer[536] = function(targetId)
 		return 30;
 	end
 
 	--Stinking Gas
-	spellTable[537] = function(targetId)
+	buffer[537] = function(targetId)
 		return 60;
 	end
 
 	--Terror Touch
-	spellTable[539] = function(targetId)
+	buffer[539] = function(targetId)
 		return 60;
 	end
 
 	--Filamented Hold
-	spellTable[548] = function(targetId)
+	buffer[548] = function(targetId)
 		return 90;
 	end
 
 	--Magnetite Cloud
-	spellTable[555] = function(targetId)
+	buffer[555] = function(targetId)
 		return 0;
 	end
 
 	--Frightful Roar
-	spellTable[561] = function(targetId)
+	buffer[561] = function(targetId)
 		return 180;
 	end
 
 	--Hecatomb Wave
-	spellTable[563] = function(targetId)
+	buffer[563] = function(targetId)
 		return 0;
 	end
 
 	--Radiant Breath
-	spellTable[565] = function(targetId)
+	buffer[565] = function(targetId)
 		return 90;
 	end
 
 	--Sound Blast
-	spellTable[572] = function(targetId)
+	buffer[572] = function(targetId)
 		return 30;
 	end
 
 	--Feather Tickle
-	spellTable[573] = function(targetId)
+	buffer[573] = function(targetId)
 		return 0;
 	end
 
 	--Jettatura
-	spellTable[575] = function(targetId)
+	buffer[575] = function(targetId)
 		return 0;
 	end
 
 	--Yawn
-	spellTable[576] = function(targetId)
+	buffer[576] = function(targetId)
 		return 0;
 	end
 
 	--Chaotic Eye
-	spellTable[582] = function(targetId)
+	buffer[582] = function(targetId)
 		return 0;
 	end
 
 	--Sheep Song
-	spellTable[584] = function(targetId)
+	buffer[584] = function(targetId)
 		return 0;
 	end
 
 	--Lowing
-	spellTable[588] = function(targetId)
+	buffer[588] = function(targetId)
 		return 0;
 	end
 
 	--Pinecone Bomb
-	spellTable[596] = function(targetId)
+	buffer[596] = function(targetId)
 		return 0;
 	end
 
 	--Sprout Smack
-	spellTable[597] = function(targetId)
+	buffer[597] = function(targetId)
 		return 0;
 	end
 
 	--Soporific
-	spellTable[598] = function(targetId)
+	buffer[598] = function(targetId)
 		return 90;
 	end
 
 	--Queasyshroom
-	spellTable[599] = function(targetId)
+	buffer[599] = function(targetId)
 		return 0;
 	end
 
 	--Wild Oats
-	spellTable[603] = function(targetId)
+	buffer[603] = function(targetId)
 		return 0;
 	end
 
 	--Bad Breath
-	spellTable[604] = function(targetId)
+	buffer[604] = function(targetId)
 		return 0;
 	end
 
 	--Awful Eye
-	spellTable[606] = function(targetId)
+	buffer[606] = function(targetId)
 		return 30;
 	end
 
 	--Frost Breath
-	spellTable[608] = function(targetId)
+	buffer[608] = function(targetId)
 		return 180;
 	end
 
 	--Infrasonics
-	spellTable[610] = function(targetId)
+	buffer[610] = function(targetId)
 		return 60;
 	end
 
 	--Disseverment
-	spellTable[611] = function(targetId)
+	buffer[611] = function(targetId)
 		return 180;
 	end
 
 	--Actinic Burst
-	spellTable[612] = function(targetId)
+	buffer[612] = function(targetId)
 		return 0;
 	end
 
 	--Temporal Shift
-	spellTable[616] = function(targetId)
+	buffer[616] = function(targetId)
 		return 0;
 	end
 
 	--Blastbomb
-	spellTable[618] = function(targetId)
+	buffer[618] = function(targetId)
 		return 0;
 	end
 
 	--Battle Dance
-	spellTable[620] = function(targetId)
+	buffer[620] = function(targetId)
 		return 0;
 	end
 
 	--Sandspray
-	spellTable[621] = function(targetId)
+	buffer[621] = function(targetId)
 		return 0;
 	end
 
 	--Head Butt
-	spellTable[623] = function(targetId)
+	buffer[623] = function(targetId)
 		return 0;
 	end
 
 	--Frypan
-	spellTable[628] = function(targetId)
+	buffer[628] = function(targetId)
 		return 0;
 	end
 
 	--Hydro Shot
-	spellTable[631] = function(targetId)
+	buffer[631] = function(targetId)
 		return 0;
 	end
 
 	--Enervation
-	spellTable[633] = function(targetId)
+	buffer[633] = function(targetId)
 		return 30;
 	end
 
 	--Light of Penance
-	spellTable[634] = function(targetId)
+	buffer[634] = function(targetId)
 		return 30;
 	end
 
 	--Feather Storm
-	spellTable[638] = function(targetId)
+	buffer[638] = function(targetId)
 		return 0;
 	end
 
 	--Tail Slap
-	spellTable[640] = function(targetId)
+	buffer[640] = function(targetId)
 		return 0;
 	end
 
 	--Mind Blast
-	spellTable[644] = function(targetId)
+	buffer[644] = function(targetId)
 		return 90;
 	end
 
 	--Regurgitation
-	spellTable[648] = function(targetId)
+	buffer[648] = function(targetId)
 		return 0;
 	end
 
 	--Seedspray
-	spellTable[650] = function(targetId)
+	buffer[650] = function(targetId)
 		return 0;
 	end
 
 	--Corrosive Ooze
-	spellTable[651] = function(targetId)
+	buffer[651] = function(targetId)
 		return 0;
 	end
 
 	--Spiral Spin
-	spellTable[652] = function(targetId)
+	buffer[652] = function(targetId)
 		return 0;
 	end
 
 	--Sub-zero Smash
-	spellTable[654] = function(targetId)
+	buffer[654] = function(targetId)
 		return 180;
 	end
 
 	--Acrid Stream
-	spellTable[656] = function(targetId)
+	buffer[656] = function(targetId)
 		return 120;
 	end
 
 	--Demoralizing Roar
-	spellTable[659] = function(targetId)
+	buffer[659] = function(targetId)
 		return 30;
 	end
 
 	--Cimicine Discharge
-	spellTable[660] = function(targetId)
+	buffer[660] = function(targetId)
 		return 90;
 	end
 
 	--Whirl of Rage
-	spellTable[669] = function(targetId)
+	buffer[669] = function(targetId)
 		return 0;
 	end
 
 	--Benthic Typhoon
-	spellTable[670] = function(targetId)
+	buffer[670] = function(targetId)
 		return 60;
 	end
 
 	--Auroral Drape
-	spellTable[671] = function(targetId)
+	buffer[671] = function(targetId)
 		return 0;
 	end
 
 	--Thermal Pulse
-	spellTable[675] = function(targetId)
+	buffer[675] = function(targetId)
 		return 0;
 	end
     
 	--Dream Flower
-	spellTable[678] = function(targetId)
+	buffer[678] = function(targetId)
 		return 0;
 	end
 
 	--Delta Thrust
-	spellTable[682] = function(targetId)
+	buffer[682] = function(targetId)
 		return 0;
 	end
 
 	--Mortal Ray
-	spellTable[686] = function(targetId)
+	buffer[686] = function(targetId)
 		return 63;
 	end
 
 	--Water Bomb
-	spellTable[687] = function(targetId)
+	buffer[687] = function(targetId)
 		return 0;
 	end
 
 	--Sudden Lunge
-	spellTable[692] = function(targetId)
+	buffer[692] = function(targetId)
 		return 0;
 	end
 
 	--Barbed Crescent
-	spellTable[699] = function(targetId)
+	buffer[699] = function(targetId)
 		return 120;
 	end
 
 	--Embalming Earth
-	spellTable[703] = function(targetId)
+	buffer[703] = function(targetId)
 		return 180;
 	end
 
 	--Paralyzing Triad
-	spellTable[704] = function(targetId)
+	buffer[704] = function(targetId)
 		return 60;
 	end
 
 	--Foul Waters
-	spellTable[705] = function(targetId)
+	buffer[705] = function(targetId)
 		return 180;
 	end
 
 	--Retinal Glare
-	spellTable[707] = function(targetId)
+	buffer[707] = function(targetId)
 		return 15;
 	end
 
 	--Subduction
-	spellTable[708] = function(targetId)
+	buffer[708] = function(targetId)
 		return 90;
 	end
 
 	--Nectarous Deluge
-	spellTable[716] = function(targetId)
+	buffer[716] = function(targetId)
 		return 0;
 	end
 
 	--Sweeping Gouge
-	spellTable[717] = function(targetId)
+	buffer[717] = function(targetId)
 		return 90;
 	end
 
 	--Searing Tempest
-	spellTable[719] = function(targetId)
+	buffer[719] = function(targetId)
 		return 0;
 	end
 
 	--Spectral Floe
-	spellTable[720] = function(targetId)
+	buffer[720] = function(targetId)
 		return 0;
 	end
 
 	--Anvil Lightning
-	spellTable[721] = function(targetId)
+	buffer[721] = function(targetId)
 		return 0;
 	end
 
 	--Entomb
-	spellTable[722] = function(targetId)
+	buffer[722] = function(targetId)
 		return 0;
 	end
 
 	--Saurian Slide
-	spellTable[723] = function(targetId)
+	buffer[723] = function(targetId)
 		return 0;
 	end
 
 	--Palling Salvo
-	spellTable[724] = function(targetId)
+	buffer[724] = function(targetId)
 		return 0;
 	end
 
 	--Blinding Fulgor
-	spellTable[725] = function(targetId)
+	buffer[725] = function(targetId)
 		return 0;
 	end
 
 	--Scouring Spate
-	spellTable[726] = function(targetId)
+	buffer[726] = function(targetId)
 		return 0;
 	end
 
 	--Silent Storm
-	spellTable[727] = function(targetId)
+	buffer[727] = function(targetId)
 		return 0;
 	end
 
 	--Tenebral Crush
-	spellTable[728] = function(targetId)
+	buffer[728] = function(targetId)
 		return 180;
 	end
 
 	--Thunderbolt
-	spellTable[736] = function(targetId)
+	buffer[736] = function(targetId)
 		return 0;
 	end
 
 	--Absolute Terror
-	spellTable[738] = function(targetId)
+	buffer[738] = function(targetId)
 		return 0;
 	end
 
 	--Gates of Hades
-	spellTable[739] = function(targetId)
+	buffer[739] = function(targetId)
 		return 90;
 	end
 
 	--Tourbillion
-	spellTable[740] = function(targetId)
+	buffer[740] = function(targetId)
 		return 0;
 	end
 
 	--Bilgestorm
-	spellTable[742] = function(targetId)
+	buffer[742] = function(targetId)
 		return 0;
 	end
 
 	--Bloodrake
-	spellTable[743] = function(targetId)
+	buffer[743] = function(targetId)
 		return 0;
 	end
 
 	--Blistering Roar
-	spellTable[746] = function(targetId)
+	buffer[746] = function(targetId)
 		return 0;
 	end
 
 	--Polar Roar
-	spellTable[749] = function(targetId)
+	buffer[749] = function(targetId)
 		return 0;
 	end
 
 	--Cruel Joke
-	spellTable[751] = function(targetId)
+	buffer[751] = function(targetId)
 		return 60;
 	end
 
 	--Cesspool
-	spellTable[752] = function(targetId)
+	buffer[752] = function(targetId)
 		return 60;
 	end
 
 	--Tearing Gust
-	spellTable[753] = function(targetId)
+	buffer[753] = function(targetId)
 		return 60;
 	end
     ]]--
 end
 
-return FillSpellTable;
+return Initialize;

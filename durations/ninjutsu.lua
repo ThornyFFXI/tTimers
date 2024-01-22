@@ -19,116 +19,119 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Monomi: Ichi
-    spellTable[318] = function(targetId)
+    buffer[318] = function(targetId)
         return 120;
     end
 
     --Utsusemi: Ichi
-    spellTable[338] = function(targetId)
+    buffer[338] = function(targetId)
         return 900;
     end
 
     --Utsusemi: Ni
-    spellTable[339] = function(targetId)
+    buffer[339] = function(targetId)
         return 900;
     end
 
     --Utsusemi: San
-    spellTable[340] = function(targetId)
+    buffer[340] = function(targetId)
         return 900;
     end
 
 	--Aisha: Ichi
-	spellTable[319] = function(targetId)
+	buffer[319] = function(targetId)
 		return 120;
 	end
 
     --[[UNKNOWN
 	--Jubaku: Ichi
-	spellTable[341] = function(targetId)
+	buffer[341] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Hojo: Ichi
-	spellTable[344] = function(targetId)
+	buffer[344] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Hojo: Ni
-	spellTable[345] = function(targetId)
+	buffer[345] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Kurayami: Ichi
-	spellTable[347] = function(targetId)
+	buffer[347] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Kurayami: Ni
-	spellTable[348] = function(targetId)
+	buffer[348] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --[[UNKNOWN
 	--Dokumori: Ichi
-	spellTable[350] = function(targetId)
+	buffer[350] = function(targetId)
 		return 60;
 	end
     ]]--
 
     --Tonko: Ichi
-    spellTable[353] = function(targetId)
+    buffer[353] = function(targetId)
         return 180;
     end
 
     --Tonko: Ni
-    spellTable[354] = function(targetId)
+    buffer[354] = function(targetId)
         return 300;
     end
     
     --Gekka: Ichi
-    spellTable[505] = function(targetId)
+    buffer[505] = function(targetId)
         return 180;
     end
     
     --Yain: Ichi
-    spellTable[506] = function(targetId)
+    buffer[506] = function(targetId)
         return 300;
     end
     
     --Myoshu: Ichi
-    spellTable[507] = function(targetId)
+    buffer[507] = function(targetId)
         return 300;
     end
     
     --[[UNKNOWN
     --Yurin: Ichi
-	spellTable[508] = function(targetId)
+	buffer[508] = function(targetId)
 		return 0;
 	end
     ]]--
 
     --Kakka: Ichi
-    spellTable[509] = function(targetId)
+    buffer[509] = function(targetId)
         return 300;
     end    
     
     --Migawari: Ichi
-    spellTable[510] = function(targetId)
+    buffer[510] = function(targetId)
         return 60;
     end
 end
 
-return FillSpellTable;
+return Initialize;

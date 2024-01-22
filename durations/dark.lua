@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
 
 local absorbDuration = {
@@ -44,74 +45,76 @@ local absorbPercent = {
     [26188] = 0.10, --Kishar Ring
 };
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Absorb-ACC
-    spellTable[242] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[242] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
 
     --Absorb-STR
-    spellTable[266] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[266] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
     
     --Absorb-DEX
-    spellTable[267] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[267] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
     
     --Absorb-VIT
-    spellTable[268] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[268] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
     
     --Absorb-AGI
-    spellTable[269] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[269] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
     
     --Absorb-INT
-    spellTable[270] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[270] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
     
     --Absorb-MND
-    spellTable[271] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[271] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
 
     --Absorb-CHR
-    spellTable[272] = function(targetId)
-        local base = 90 + gData.EquipSum(absorbDuration);
-        return base * (1.0 + gData.EquipSum(absorbPercent));
+    buffer[272] = function(targetId)
+        local base = 90 + dataTracker:EquipSum(absorbDuration);
+        return base * (1.0 + dataTracker:EquipSum(absorbPercent));
     end
 
     --Dread Spikes
-    spellTable[277] = function(targetId)
+    buffer[277] = function(targetId)
         return 180;
     end
 
     --Klimaform
-    spellTable[287] = function(targetId)
+    buffer[287] = function(targetId)
         return 300;
     end
 
     --Endark
-    spellTable[311] = function(targetId)
+    buffer[311] = function(targetId)
         return 180;
     end
 
     --Endark II
-    spellTable[856] = function(targetId)
+    buffer[856] = function(targetId)
         return 180;
     end
 end
 
-return FillSpellTable;
+return Initialize;

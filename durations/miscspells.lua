@@ -19,38 +19,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
+local dataTracker;
 
-local function FillSpellTable(spellTable)
+local function Initialize(tracker, buffer)
+    dataTracker = tracker;
+
     --Reraise
-    spellTable[135] = function(targetId)
+    buffer[135] = function(targetId)
         return 3600;
     end
     
     --Reraise II
-    spellTable[141] = function(targetId)
+    buffer[141] = function(targetId)
         return 3600;
     end
     
     --Reraise III
-    spellTable[142] = function(targetId)
+    buffer[142] = function(targetId)
         return 3600;
     end
 
     --Enlight
-    spellTable[310] = function(targetId)
+    buffer[310] = function(targetId)
         return 180;
     end
     
     --Reraise IV
-    spellTable[848] = function(targetId)
+    buffer[848] = function(targetId)
         return 3600;
     end
     
     --Enlight II
-    spellTable[855] = function(targetId)
+    buffer[855] = function(targetId)
         return 180;
     end
 
 end
 
-return FillSpellTable;
+return Initialize;
