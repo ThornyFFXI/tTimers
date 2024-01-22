@@ -21,6 +21,7 @@ SOFTWARE.
 --]]
 
 --Initialize Globals..
+chat = require('chat');
 gTextureCache    = require('texturecache');
 settings         = require('settings');
 
@@ -44,6 +45,9 @@ gDefaultSettings = T{
         AbilityIconList = T{},
         WeaponSkillIconList = T{},
         SplitBuffsByDuration = true,
+        Blocked = T{
+            --Add reasonable defaults..
+        },
         Skin = T{},
     },
     
@@ -61,6 +65,9 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        Blocked = T{
+            --Add reasonable defaults..
+        },
         Skin = T{},
     },
     
@@ -78,6 +85,12 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        BlockedAbilities = T{
+            --Defaults to empty..
+        },
+        BlockedSpells = T{
+            --Defaults to empty..
+        },
         Skin = T{},
     },
     

@@ -25,6 +25,9 @@ local ffi = require('ffi');
 ffi.cdef [[
     int16_t GetKeyState(int32_t vkey);
 ]]
+local function IsControlPressed()
+    return (bit.band(ffi.C.GetKeyState(0x11), 0x8000) ~= 0);
+end
 local function IsShiftPressed()
     return (bit.band(ffi.C.GetKeyState(0x10), 0x8000) ~= 0);
 end
@@ -73,6 +76,9 @@ function TimerGroup:HandleMouse(e)
             local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
             if renderData then
                 renderData.Local.Delete = true;
+                if (IsControlPressed()) then
+                    renderData.Local.Block = true;
+                end
                 e.blocked = true;
                 self.MouseBlocked = true;
                 return;

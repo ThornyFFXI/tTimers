@@ -207,6 +207,7 @@ function tracker:Initialize()
             state.SpellTimers[x] = {
                 Icon  = GetSpellIcon(x),
                 Label = label,
+                Local = T{},
             };
         end
     end
@@ -215,7 +216,20 @@ function tracker:Initialize()
     update_job(AshitaCore:GetMemoryManager():GetPlayer():GetMainJob());
 end
 
-function tracker:UpdateAbilities()
+function tracker:UpdateAbilities()    
+    for id,ability in pairs(state.AbilityTimers) do
+        if (ability.Local.Delete) then
+            if (ability.Local.Block) then
+                gSettings.Recast.BlockedAbilities[id] = true;
+                settings.save();
+                ability.Local.Block = nil;
+                print(chat.header('tTimers') .. chat.message('Blocked ability: ' .. ability.Label));
+            end
+            ability.Local.Delete = nil;
+            ability.Hide = true;
+        end
+    end
+
     local mmRecast  = AshitaCore:GetMemoryManager():GetRecast();
     local time      = os.clock();
     local activeIds = T{};
@@ -231,12 +245,12 @@ function tracker:UpdateAbilities()
             local duration = timer / 60;
             if ability == nil then
                 ability = {
-                    Creation = time;
+                    Creation = time,
                     Duration = duration,
                     Icon = GetAbilityIcon(id),
                     TotalDuration = duration,
                     Label = GetAbilityLabel(id),
-                    Local = {},
+                    Local = T{},
                     Expiration = time + duration,
                 }
                 if (timer == 0) then
@@ -323,7 +337,7 @@ function tracker:UpdateAbilities()
 
     for id,ability in pairs(state.AbilityTimers) do
         if (activeIds:contains(id)) then
-            if (not ability.Hide) then
+            if (not ability.Hide) and (gSettings.Recast.BlockedAbilities[id] ~= true) then
                 state.ActiveTimers:append(ability);
             end
         else
@@ -338,6 +352,17 @@ function tracker:UpdateSpells()
     local time      = os.clock();
     -- Obtain the players ability recasts..
     for id,spell in pairs(state.SpellTimers) do
+        if (spell.Local.Delete) then
+            if (spell.Local.Block) then
+                gSettings.Recast.BlockedSpells[id] = true;
+                settings.save();
+                spell.Local.Block = nil;
+                print(chat.header('tTimers') .. chat.message('Blocked spell: ' .. spell.Label));
+            end
+            spell.Local.Delete = nil;
+            spell.Hide = true;
+        end
+
         local timer = mmRecast:GetSpellTimer(id);
         local duration = timer / 60;
 
@@ -374,19 +399,13 @@ function tracker:UpdateSpells()
     end
 
     for id,spell in pairs(state.SpellTimers) do
-        if (not spell.Hide) then
+        if (not spell.Hide) and (gSettings.Recast.BlockedSpells[id] ~= true) then
             state.ActiveTimers:append(spell);
         end
     end
 end
 
 function tracker:Tick()
-    state.ActiveTimers = state.ActiveTimers:each(function(a)
-        if (a.Local.Delete == true) then
-            a.Local.Delete = nil;
-            a.Hide = true;
-        end
-    end);
     state.ActiveTimers = T{};
     self:UpdateAbilities();
     self:UpdateSpells();
@@ -412,6 +431,7 @@ ashita.events.register('packet_in', 'recast_tracker_handleincomingpacket', funct
                 state.SpellTimers[actionId] = {
                     Icon  = GetSpellIcon(actionId),
                     Label = label,
+                    Local = T{},
                 };
             end
         end

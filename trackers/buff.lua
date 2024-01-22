@@ -46,7 +46,6 @@ local buffFlags = require('buffflags');
         Resource(ISpell/IAbility) - Resource for triggering action.
         BuffId(number) - Buff ID.
         Texture(string) - Texture.
-        LinkedTimers(table) - List of linked timers.
         Targets(table) - List of effected players.
             Id(number) - Target ID.
             Creation(number) - Time the buff was created at.
@@ -149,16 +148,25 @@ local function IdToName(id)
     return 'Unknown';
 end
 
+local function ResourceToKey(resource)
+    if (resource.Index) then
+        return string.format('Spell:%s', resource.Name[1]);
+    elseif (resource.Id < 512) then
+        return string.format('WS:%s', resource.Name[1]);
+    else
+        return string.format('JA:%s', resource.Name[1]);
+    end
+end
+
 local function RecordBuff(targetId, actionResource, buffId, duration)
     local playerTable = ClearConflicts(targetId, actionResource, buffId);
 
-    local key = actionResource.Index and string.format('Spell:%u', actionResource.Index) or string.format('Ability:%u', actionResource.Id);
+    local key = ResourceToKey(actionResource);
     local actionTable = buffsByAction[key];
     if not actionTable then
         actionTable = {};
         actionTable.Resource = actionResource;
         actionTable.BuffId = buffId;
-        actionTable.LinkedTimers = T{};
         actionTable.Icon = GetActionIcon(actionResource, buffId);
         actionTable.Targets = T{};
         buffsByAction[key] = actionTable;
@@ -456,6 +464,13 @@ local function ClearDeletedTimers()
             for _,targetEntry in ipairs(timer.Players) do
                 targetEntry.Delete = true;
             end
+            if (timer.Local.Block) then
+                local key = ResourceToKey(timer.Resource);
+                gSettings.Buff.Blocked[key] = true;
+                settings.save();
+                timer.Local.Block = nil;
+                print(chat.header('tTimers') .. chat.message('Blocked Buff: ' .. key));
+            end
             rebuildTimers = true;
         else
             --Flag a rebuild if timers have any expired members..
@@ -532,12 +547,13 @@ local function CreateTimer(buffData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
     timerData.Icon = buffData.Icon;
     if (count > 1) then
-        timerData.Label = string.format('%s[%s+%u]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), shortest.Name, (count - 1));
+        timerData.Label = string.format('%s[%u]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), count);
     else
         timerData.Label = string.format('%s[%s]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), shortest.Name);
     end
     timerData.Local = {};
     timerData.Players = playerArray;
+    timerData.Resource = buffData.Resource;
     timerData.Tooltip = toolTipText;
     activeTimers:append(timerData);
 end
@@ -574,10 +590,12 @@ local function RebuildTimers(splitByDuration)
     activeTimers = T{};
 
     for key,buffData in pairs(buffsByAction) do
-        if splitByDuration then
-            CreateSplitTimers(buffData);
-        else
-            CreateTimer(buffData);
+        if (gSettings.Buff.Blocked[key] == nil) then
+            if splitByDuration then
+                CreateSplitTimers(buffData);
+            else
+                CreateTimer(buffData);
+            end
         end
     end
 end
