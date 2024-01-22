@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --]]
 
+local d3d = require('d3d8');
+local ffi = require('ffi');
 local config        = require('config');
 local customTracker = require('trackers.custom');
 local dummyTracker  = require('trackers.dummy');
@@ -30,23 +32,37 @@ local trackers      = T{
     { Name='Custom',  Tracker=customTracker },
 }
 
+local sprite = ffi.new('ID3DXSprite*[1]');
+if (ffi.C.D3DXCreateSprite(d3d.get_device(), sprite) == ffi.C.S_OK) then
+    sprite = d3d.gc_safe_release(ffi.cast('ID3DXSprite*', sprite[0]));
+else
+    sprite = nil;
+    Error('Failed to create sprite.');
+end
+
 ashita.events.register('d3d_present', 'd3d_present_cb', function ()
     config:Render();
+    if (sprite == nil) then
+        return;
+    end
+
+    sprite:Begin();
     for _,entry in ipairs(trackers) do
         local panel = gPanels[entry.Name];
         if (panel.ShowDebugTimers) then
             entry.Tracker:Tick();
-            panel:Render(dummyTracker:Tick(entry.Name));
+            panel:Render(sprite, dummyTracker:Tick(entry.Name));
         else
-            panel:Render(entry.Tracker:Tick());
+            panel:Render(sprite, entry.Tracker:Tick());
         end
     end
     for i = #trackers,1,-1 do
         local panel = gPanels[trackers[i].Name];
-        if panel:RenderTooltip() then
+        if panel:RenderTooltip(sprite) then
             break;
         end
     end
+    sprite:End();
 end);
 
 ashita.events.register('mouse', 'mouse_cb', function (e)

@@ -35,12 +35,15 @@ SOFTWARE.
     Destroy() - Called if renderer is discarded, to clean up any floating resources.
     Begin() - Called prior to drawing timers and drag handle.
     End() - Called after drawing timers and drag handle.
-    DrawDragHandle(position) - Should draw a handle used to drag the panel around.
+    DrawDragHandle(sprite, position) - Should draw a handle used to drag the panel around.
+        sprite(ID3DXSprite) - A sprite to draw with.  Begin will have been called already.
         position(table) - Base position of the panel.
-    DrawTimers(position, renderDataContainer) - Should draw all timer objects.
+    DrawTimers(sprite, position, renderDataContainer) - Should draw all timer objects.
+        sprite(ID3DXSprite) - A sprite to draw with.  Begin will have been called already.
         position(table) - Base position of the panel.
         renderDataContainer(table) - Objects to be drawn.
-    DrawTooltip(position, renderData) - Should draw a tooltip for the specified timer object.
+    DrawTooltip(sprite, position, renderData) - Should draw a tooltip for the specified timer object.
+        sprite(ID3DXSprite) - A sprite to draw with.  Begin will have been called already.
         position(table) - Current mouse position.
         renderData(table) - Data for the object specified.
     DragHitTest(position) - Should return true if the mouse coordinates fall within the drag handle, false if not.
@@ -155,13 +158,6 @@ function renderer:New(skin, settings)
         Scale = settings.Scale,
         ShowTenths = settings.ShowTenths,
     };
-    o.Sprite = ffi.new('ID3DXSprite*[1]');
-    if (ffi.C.D3DXCreateSprite(d3d.get_device(), o.Sprite) == ffi.C.S_OK) then
-        o.Sprite = d3d.gc_safe_release(ffi.cast('ID3DXSprite*', o.Sprite[0]));
-    else
-        o.Sprite = nil;
-        Error('Failed to create sprite.');
-    end
     o:LoadSkin(skin);
     return o;
 end
@@ -192,16 +188,9 @@ function renderer:Destroy()
 end
 
 function renderer:Begin()
-    if (self.Sprite) then
-        self.Sprite:Begin();
-    end
 end
 
 function renderer:End()
-    if (self.Sprite) then
-        self.Sprite:End();
-    end
-    self.ForceRedraw = nil;
 end
 
 --[[
@@ -247,31 +236,25 @@ function renderer:GetColor(renderData)
     end
 end
 
-function renderer:DrawDragHandle(position)
-    if (self.Sprite ~= nil) then
-        local layout = self.Skin.DragHandle;
-        local width = layout.width * self.Settings.Scale;
-        local height = layout.height * self.Settings.Scale;
-        local posX = position.X + (layout.offset_x * self.Settings.Scale);
-        local posY = position.Y + (layout.offset_y * self.Settings.Scale);
-        self.Drag:set_width(width);
-        self.Drag:set_height(height);
-        self.Drag:set_position_x(posX);
-        self.Drag:set_position_y(posY);
-        self.Drag:render(self.Sprite);
-        self.DragHitBox = CreateHitBox(posX, posY, width, height);
-    end
+function renderer:DrawDragHandle(sprite, position)
+    local layout = self.Skin.DragHandle;
+    local width = layout.width * self.Settings.Scale;
+    local height = layout.height * self.Settings.Scale;
+    local posX = position.X + (layout.offset_x * self.Settings.Scale);
+    local posY = position.Y + (layout.offset_y * self.Settings.Scale);
+    self.Drag:set_width(width);
+    self.Drag:set_height(height);
+    self.Drag:set_position_x(posX);
+    self.Drag:set_position_y(posY);
+    self.Drag:render(sprite);
+    self.DragHitBox = CreateHitBox(posX, posY, width, height);
 end
 
 local vec_position = ffi.new('D3DXVECTOR2', { 0, 0, });
 local vec_scale = ffi.new('D3DXVECTOR2', { 1, 1 });
 local d3dwhite = d3d.D3DCOLOR_ARGB(255, 255, 255, 255);
-function renderer:DrawTimers(position, renderDataContainer)
+function renderer:DrawTimers(sprite, position, renderDataContainer)
     self.HitBoxes = T{};
-    local sprite = self.Sprite;
-    if (sprite == nil) then
-        return;
-    end
     local scale = self.Settings.Scale;
     local barLayout = self.Skin.Bar;
     position.X = position.X + (barLayout.BaseOffsetX * scale);
@@ -365,8 +348,8 @@ function renderer:DrawTimers(position, renderDataContainer)
     end
 end
 
-function renderer:DrawTooltip(position, renderData)
-    if (self.Sprite == nil) or (renderData.Tooltip == nil) or (renderData.Tooltip == '') then
+function renderer:DrawTooltip(sprite, position, renderData)
+    if (renderData.Tooltip == nil) or (renderData.Tooltip == '') then
         return;
     end
 
@@ -381,10 +364,7 @@ function renderer:DrawTooltip(position, renderData)
     tooltip:set_text(renderData.Tooltip);
     tooltip:set_position_x(position.X + (layout.offset_x * self.Settings.Scale));
     tooltip:set_position_y(position.Y + (layout.offset_y * self.Settings.Scale));
-
-    self.Sprite:Begin();
-    tooltip:render(self.Sprite);
-    self.Sprite:End();
+    tooltip:render(sprite);
 end
 
 function renderer:DragHitTest(position)

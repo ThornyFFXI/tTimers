@@ -112,7 +112,7 @@ end
     Tooltip [string]
     Icon [string]
 ]]--
-function TimerGroup:Render(timers)
+function TimerGroup:Render(sprite, timers)
     for _, timerData in ipairs(timers) do
         if (timerData.Duration <= 0) then
             if ((timerData.Duration * -1) > self.Settings.CompletionDuration) then
@@ -168,18 +168,18 @@ function TimerGroup:Render(timers)
     end
 
     self.TimerRenderer:Begin();
-    self.TimerRenderer:DrawTimers({ X = self.Settings.Position.X, Y = self.Settings.Position.Y }, renderDataContainer);
+    self.TimerRenderer:DrawTimers(sprite, { X = self.Settings.Position.X, Y = self.Settings.Position.Y }, renderDataContainer);
     if (self.AllowDrag) then
-        self.TimerRenderer:DrawDragHandle({ X = self.Settings.Position.X, Y = self.Settings.Position.Y });
+        self.TimerRenderer:DrawDragHandle(sprite, { X = self.Settings.Position.X, Y = self.Settings.Position.Y });
     end
     self.TimerRenderer:End();
 end
 
-function TimerGroup:RenderTooltip();
+function TimerGroup:RenderTooltip(sprite)
     if (self.Settings.UseTooltips) then
         local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
         if renderData then
-            self.TimerRenderer:DrawTooltip({ X = self.Mouse.X, Y = self.Mouse.Y }, renderData);
+            self.TimerRenderer:DrawTooltip(sprite, { X = self.Mouse.X, Y = self.Mouse.Y }, renderData);
             return true;
         end
     end
