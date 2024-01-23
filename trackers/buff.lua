@@ -26,6 +26,14 @@ local encoding = require('gdifonts.encoding');
 local actionPacket = require('actionpacket');
 local buffFlags = require('buffflags');
 
+--Constants..
+local pRealTime = ashita.memory.find('FFXiMain.dll', 0, '8B0D????????8B410C8B49108D04808D04808D04808D04C1C3', 2, 0);
+local abilityTypes = T{ 6, 14, 15 };
+local buffAppliedMessages = T{ 205, 230, 266, 278, 280, 319, 420, 421, 424, 425 };
+local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
+local buffOverrides = T{
+};
+
 --[[    
     timerData
     Data must contain the following members:
@@ -42,7 +50,9 @@ local buffFlags = require('buffflags');
 ]]--
 
 --[[
-    buffData
+    buffData (stored in buffsByAction and buffsByTarget)
+        ActionType(string) - Ability, Item, MobSkill, Spell, Weaponskill
+        ActionId(number) - Action ID for resource lookups.
         Resource(ISpell/IAbility) - Resource for triggering action.
         BuffId(number) - Buff ID.
         Texture(string) - Texture.
@@ -57,16 +67,12 @@ local buffFlags = require('buffflags');
 local activeTimers = T{};
 local buffsByAction = {};
 local buffsByTarget = {};
+local pendingRoll = T { Time = -80 };
 local rebuildTimers = false;
 
-local pRealTime = ashita.memory.find('FFXiMain.dll', 0, '8B0D????????8B410C8B49108D04808D04808D04808D04C1C3', 2, 0);
-local abilityTypes = T{ 6, 14, 15 };
-local buffAppliedMessages = T{ 205, 230, 266, 278, 280, 319, 420, 421, 424, 425 };
-local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
-local pendingRoll = T { Time = -80 };
 
 -- Clear any conflicting buffs from table.
-local function ClearConflicts(targetId, actionResource, buffId)
+local function ClearConflicts(targetId, buffId)
     local entry = buffsByTarget[targetId];
     if not entry then
         entry = T{};
@@ -104,43 +110,102 @@ local function ClearConflicts(targetId, actionResource, buffId)
     return entry;
 end
 
+
+local defaultPaths = T{
+    ['Ability'] = 'abilities/default.png',
+    ['Item'] = 'items/default.png',
+    ['Spell'] = 'spells/default.png',
+    ['MobAbility'] = 'mobskills/default.png',
+    ['MobSkill'] = 'mobskills/default.png',
+    ['Weaponskill'] = 'weaponskills/default.png'
+};
 -- Determine the texture to be used for a given action.
-local function GetActionIcon(actionResource, buffId)
-    local target;
-    if (actionResource.Index) then
-        if (gSettings.Buff.SpellIconList:contains(actionResource.Index)) then
-            target = string.format('spells/%u.png', actionResource.Index);
-        end
-    elseif (actionResource.Id < 512) then
-        if (gSettings.Buff.WeaponskillIconList:contains(actionResource.Id)) then
-            target = string.format('weaponskills/%u.png', actionResource.Id);
-        end
-    elseif (gSettings.Buff.AbilityIconList:contains(actionResource.RecastTimerId)) then
-        target = string.format('abilities/%u_%u.png', actionResource.RecastTimerId, durations:GetDataTracker():GetJobData().MainJob);
-        if not GetFilePath(target) then
-            target = string.format('abilities/%u.png', actionResource.RecastTimerId);            
+local function GetActionIcon(actionTable)
+    local override = buffOverrides[actionTable.Key];
+    if (override) then
+        if GetFilePath(override) then
+            actionTable.Icon = override;
+            return;
         end
     end
 
-    if (target == nil) or (not GetFilePath(target)) then
-        if (buffId == 0) or (buffId == nil) then
-            if (actionResource.Index) then
-                target = 'spells/default.png';
-            elseif (actionResource.Id < 512) then
-                target = 'weaponskills/default.png';
-            else
-                target = 'abilities/default.png';
-            end
-        else
-            target = string.format('STATUS:%u', buffId);
-        end
+    if (actionTable.BuffId ~= nil) and (actionTable.BuffId > 0) then
+        actionTable.Icon = string.format('STATUS:%u', actionTable.BuffId);
+        return;
     end
-    return target;
+
+    local defaultPath = defaultPaths[actionTable.ActionType];
+    if defaultPath and GetFilePath(defaultPath) then
+        actionTable.Icon = defaultPath;
+    end
 end
 
-local function IdToName(id)
+local function GetActionName(actionTable)
+    local type = actionTable.ActionType;
+    if (type == 'Ability') then
+        local res = AshitaCore:GetResourceManager():GetAbilityById(actionTable.ActionId + 512);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('Ability[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+    
+    if (type == 'Item') then
+        local res = AshitaCore:GetResourceManager():GetItemById(actionTable.ActionId);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('Item[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+    
+    if (type == 'MobAbility') then
+        local res = AshitaCore:GetResourceManager():GetAbilityById(actionTable.ActionId + 512);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('MobAbility[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+
+    if (type == 'MobSkill') then
+        local res = AshitaCore:GetResourceManager():GetString('monsters.abilities', actionTable.ActionId);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('MobSkill[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+    
+    if (type == 'Spell') then
+        local res = AshitaCore:GetResourceManager():GetSpellById(actionTable.ActionId);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('Spell[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+    
+    if (type == 'Weaponskill') then
+        local res = AshitaCore:GetResourceManager():GetAbilityById(actionTable.ActionId);
+        if (res) then
+            actionTable.Name = encoding:ShiftJIS_To_UTF8(res.Name[1]);
+        else
+            actionTable.Name = string.format('Weaponskill[%u]', actionTable.ActionId);
+        end
+        return;
+    end
+end
+
+local function PlayerIdToName(id)
     local entity = AshitaCore:GetMemoryManager():GetEntity();
-    for i = 0,0x900 do
+    for i = 0x400,0x6FF do
         if (entity:GetServerId(i) == id) then
             return entity:GetName(i);
         end
@@ -148,27 +213,20 @@ local function IdToName(id)
     return 'Unknown';
 end
 
-local function ResourceToKey(resource)
-    if (resource.Index) then
-        return string.format('Spell:%s', resource.Name[1]);
-    elseif (resource.Id < 512) then
-        return string.format('WS:%s', resource.Name[1]);
-    else
-        return string.format('JA:%s', resource.Name[1]);
-    end
-end
+local function RecordBuff(targetId, actionType, actionId, buffId, duration)
+    local playerTable = ClearConflicts(targetId, buffId);
+    local key = string.format('%s:%u', actionType, actionId);
 
-local function RecordBuff(targetId, actionResource, buffId, duration)
-    local playerTable = ClearConflicts(targetId, actionResource, buffId);
-
-    local key = ResourceToKey(actionResource);
     local actionTable = buffsByAction[key];
     if not actionTable then
         actionTable = {};
-        actionTable.Resource = actionResource;
+        actionTable.ActionType = actionType;
+        actionTable.ActionId = actionId;
         actionTable.BuffId = buffId;
-        actionTable.Icon = GetActionIcon(actionResource, buffId);
+        actionTable.Key = key;
         actionTable.Targets = T{};
+        GetActionName(actionTable);
+        GetActionIcon(actionTable);
         buffsByAction[key] = actionTable;
     end
 
@@ -176,9 +234,10 @@ local function RecordBuff(targetId, actionResource, buffId, duration)
     if not target then
         target = {};
         target.Id = targetId;
-        target.Name = IdToName(targetId);
+        target.Name = PlayerIdToName(targetId);
         actionTable.Targets[targetId] = target;
     end
+
     target.Creation = os.clock();
     target.Delete = false;
     target.Duration = duration;
@@ -203,8 +262,7 @@ local function HandleSpellComplete(packet)
                 end
 
                 if duration then
-                    local res = AshitaCore:GetResourceManager():GetSpellById(packet.Id);
-                    RecordBuff(target.Id, res, buffId, duration);
+                    RecordBuff(target.Id, 'Spell', packet.Id, buffId, duration);
                 end
             end
         end
@@ -234,8 +292,7 @@ local function HandleAbilityComplete(packet)
                 end
 
                 if duration then
-                    local res = AshitaCore:GetResourceManager():GetAbilityById(packet.Id + 512);
-                    RecordBuff(target.Id, res, buffId, duration);
+                    RecordBuff(target.Id, 'Ability', packet.Id, buffId, duration);
                 end
             end
         end
@@ -280,7 +337,7 @@ local function HandlePartyBuffs(packet)
     end
 end
 
-local function GetRealTime()    
+local function GetRealTime()
     local ptr = ashita.memory.read_uint32(pRealTime);
     ptr = ashita.memory.read_uint32(ptr);
     return ashita.memory.read_uint32(ptr + 0x0C);
@@ -306,7 +363,6 @@ local function CalculateBuffDuration(value)
     --Convert to seconds
     return real_duration / 60;
 end
-
 local function UpdateDuration(buffId, expirationTime, newExpirationTime)
     local now = os.clock();
     for action,actionTable in pairs(buffsByAction) do
@@ -336,6 +392,9 @@ local function HandleBuffTimers(packet)
 
     for i = 1,32 do
         local buff = struct.unpack('H', packet.data, 0x06 + (i * 2) + 1);
+        if (buff == 0) and (buffs:countf(function(b) return b.ID == 0 end) > 0) then
+            return;
+        end
         if buff ~= 0xFF then
             buff = T { ID=buff };
             buff.Duration = CalculateBuffDuration(struct.unpack('L', packet.data, 0x44 + (i * 4) + 1));
@@ -378,7 +437,7 @@ local function HandleBuffTimers(packet)
             local target = buffData.Targets[myId];
             if target then
                 local timeDiff = now - target.Creation;
-                if (timeDiff > 0.2) then
+                if (timeDiff > 0.2) and (now < target.Expiration) then
                     target.Creation = now - target.Duration;
                     target.Expiration = now;
                     rebuildTimers = true;
@@ -465,11 +524,10 @@ local function ClearDeletedTimers()
                 targetEntry.Delete = true;
             end
             if (timer.Local.Block) then
-                local key = ResourceToKey(timer.Resource);
-                gSettings.Buff.Blocked[key] = true;
+                gSettings.Buff.Blocked[timer.Key] = true;
                 settings.save();
                 timer.Local.Block = nil;
-                print(chat.header('tTimers') .. chat.message('Blocked Buff: ' .. key));
+                print(chat.header('tTimers') .. chat.message('Blocked Buff: ' .. timer.Key));
             end
             rebuildTimers = true;
         else
@@ -547,13 +605,13 @@ local function CreateTimer(buffData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
     timerData.Icon = buffData.Icon;
     if (count > 1) then
-        timerData.Label = string.format('%s[%u]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), count);
+        timerData.Label = string.format('%s[%u]', buffData.Name, count);
     else
-        timerData.Label = string.format('%s[%s]', encoding:ShiftJIS_To_UTF8(buffData.Resource.Name[1]), shortest.Name);
+        timerData.Label = string.format('%s[%s]', buffData.Name, shortest.Name);
     end
     timerData.Local = {};
     timerData.Players = playerArray;
-    timerData.Resource = buffData.Resource;
+    timerData.Key = buffData.Key;
     timerData.Tooltip = toolTipText;
     activeTimers:append(timerData);
 end
@@ -570,10 +628,11 @@ local function CreateSplitTimers(buffData)
         end
         if not targetTimer then
             targetTimer = {
-                Resource = buffData.Resource,
                 BuffId = buffData.BuffId,
                 Icon = buffData.Icon,
                 Expiration = target.Expiration,
+                Name = buffData.Name,
+                Key = buffData.Key,
                 Targets = {},
             };
             timers:append(targetTimer);
