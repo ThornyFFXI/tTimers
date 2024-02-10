@@ -3,16 +3,16 @@ Displays time remaining on buffs and debuffs you've cast, as well as the recast 
 
 ## Commands
 
-**/tt**
+**/tt**<br>
 Opens configuration menu.  This allows you to change themes, alter behavior, etc.
 
-**/tt reposition**
+**/tt reposition**<br>
 Forces all timer panels visible with max allowed timers, and allows them to be dragged around using the blue handles.
 
-**/tt lock**
+**/tt lock**<br>
 Ends reposition mode.
 
-**/tt custom [required: Label] [required: Duration]**
+**/tt custom [required: Label] [required: Duration]**<br>
 This creates a custom timer with the label and duration specified.  Duration can be specified in full or partial minutes, seconds, or hours by using suffixes s, m, or h.  Example usage:
 **/tt custom "PH Repop" 5.5m**
 **/tt custom "NM Window" 1h**
