@@ -288,7 +288,6 @@ local function HandleDiaBio(targetId, actionType, actionId, buffId, duration)
             if (buffData.ActionType == 'Spell') then
                 local buffValue = dotPriority[buffData.ActionId];
                 if (buffValue ~= nil) then
-                    print(buffValue);
                     if (buffValue >= value) then
                         return;
                     else

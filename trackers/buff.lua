@@ -496,7 +496,7 @@ ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', functio
     if (e.id == 0x00D) then
         local flags = struct.unpack('B', e.data, 0x0A + 1);
         if (bit.band(flags, 0x20) == 0x20) and (CheckDistance(struct.unpack('H', e.data, 0x08 + 1))) then
-            HandleEnemyDeath(struct.unpack('L', e.data, 0x04 + 1));
+            HandlePlayerDeath(struct.unpack('L', e.data, 0x04 + 1));
         elseif (bit.band(flags, 0x04) == 0x04) then
             local hp = struct.unpack('B', e.data, 0x1E + 1);
             if (hp == 0) then
