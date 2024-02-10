@@ -29,7 +29,12 @@ local buffFlags = require('buffflags');
 --Constants..
 local pRealTime = ashita.memory.find('FFXiMain.dll', 0, '8B0D????????8B410C8B49108D04808D04808D04808D04C1C3', 2, 0);
 local abilityTypes = T{ 6, 14, 15 };
-local buffAppliedMessages = T{ 205, 230, 266, 278, 280, 319, 420, 421, 424, 425 };
+
+local actionMessages = T{
+    Death = T{ 6, 20, 113, 406, 605, 646 },
+    Expired = T{ 206 },
+    Applied = T{ 205, 230, 266, 278, 280, 319, 420, 421, 424, 425 },
+};
 local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
 local buffOverrides = T{
 };
@@ -205,7 +210,7 @@ end
 
 local function PlayerIdToName(id)
     local entity = AshitaCore:GetMemoryManager():GetEntity();
-    for i = 0x400,0x6FF do
+    for i = 0x400,0x8FF do
         if (entity:GetServerId(i) == id) then
             return entity:GetName(i);
         end
@@ -255,7 +260,7 @@ end
 local function HandleSpellComplete(packet)
     for _,target in ipairs(packet.Targets) do
         for _,action in ipairs(target.Actions) do
-            if (buffAppliedMessages:contains(action.Message)) then
+            if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetSpellDuration(packet.Id, target.Id);
                 if type(buffId) == 'table' then
                     buffId = buffId[1];
@@ -272,7 +277,7 @@ end
 local function HandleAbilityComplete(packet)
     for _,target in ipairs(packet.Targets) do
         for _,action in ipairs(target.Actions) do
-            if (buffAppliedMessages:contains(action.Message)) then
+            if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
                 
                 -- Convert double-up to pending roll..
@@ -468,9 +473,51 @@ local function HandleBuffCancel(buff, targetId)
         end
     end
 end
+local function HandlePlayerDeath(targetId)
+    local entry = buffsByTarget[targetId];
+    if entry then
+        for _,buffData in ipairs(entry) do
+            local target = buffData.Targets[targetId];
+            if target then
+                target.Expiration = 0;
+                rebuildTimers = true;
+            end
+        end
+    end
+end
 
+local function CheckDistance(index)
+    local distance = AshitaCore:GetMemoryManager():GetEntity():GetDistance(index);
+    if (distance ~= 0) and (distance < 1225) then
+        return true;
+    end
+end
 ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', function (e)
-    --TODO: If player is dead, clear their buffs.
+    if (e.id == 0x00D) then
+        local flags = struct.unpack('B', e.data, 0x0A + 1);
+        if (bit.band(flags, 0x20) == 0x20) and (CheckDistance(struct.unpack('H', e.data, 0x08 + 1))) then
+            HandleEnemyDeath(struct.unpack('L', e.data, 0x04 + 1));
+        elseif (bit.band(flags, 0x04) == 0x04) then
+            local hp = struct.unpack('B', e.data, 0x1E + 1);
+            if (hp == 0) then
+                HandlePlayerDeath(struct.unpack('L', e.data, 0x04 + 1));
+            end
+        end
+    end
+    if (e.id == 0x00E) then
+        local index = struct.unpack('H', e.data, 0x08 + 1);
+        if (index >= 0x700) then
+            local flags = struct.unpack('B', e.data, 0x0A + 1);
+            if (bit.band(flags, 0x20) == 0x20) and (CheckDistance(index)) then
+                HandlePlayerDeath(struct.unpack('L', e.data, 0x04 + 1));
+            elseif (bit.band(flags, 0x04) == 0x04) then
+                local hp = struct.unpack('B', e.data, 0x1E + 1);
+                if (hp == 0) then
+                    HandlePlayerDeath(struct.unpack('L', e.data, 0x04 + 1));
+                end
+            end
+        end
+    end
 
 
     if (e.id == 0x028) then
@@ -489,8 +536,13 @@ ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', functio
     end
 
     if (e.id == 0x29) then
-        local msg = bit.band(struct.unpack('H', e.data, 0x18 + 1), 0x7FFF);
-        if (msg == 206) then
+        local messageId = bit.band(struct.unpack('H', e.data, 0x18 + 1), 0x7FFF);
+        
+        if (actionMessages.Death:contains(messageId)) then
+            HandlePlayerDeath(struct.unpack('L', e.data, 0x08 + 1));
+        end
+
+        if (actionMessages.Expired:contains(messageId)) then
             HandleBuffCancel(struct.unpack('H', e.data, 0x0C + 1), struct.unpack('L', e.data, 0x08 + 1));
         end
     end
@@ -680,8 +732,8 @@ local lastSetting;
 function exports:Tick()
     ClearDeletedTimers();
 
-    if (rebuildTimers) or (gSettings.Buff.SplitBuffsByDuration ~= lastSetting) then
-        lastSetting = gSettings.Buff.SplitBuffsByDuration;
+    if (rebuildTimers) or (gSettings.Buff.SplitByDuration ~= lastSetting) then
+        lastSetting = gSettings.Buff.SplitByDuration;
         RebuildTimers(lastSetting);
         rebuildTimers = false;
     else

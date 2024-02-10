@@ -49,7 +49,7 @@ gDefaultSettings = T{
         SpellIconList = T{},
         AbilityIconList = T{},
         WeaponSkillIconList = T{},
-        SplitBuffsByDuration = true,
+        SplitByDuration = true,
         Blocked = T{
             --Add reasonable defaults..
         },
@@ -73,6 +73,8 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
+        SplitByDuration = true,
+        ShowMobIndex = true,
         Blocked = T{
             --Add reasonable defaults..
         },

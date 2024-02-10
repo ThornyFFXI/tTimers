@@ -256,11 +256,22 @@ function config:Render()
 
                 if imgui.BeginTabItem(string.format('Behavior##tTimersConfigBehaviorTab')) then
                     imgui.TextColored(header, 'Buffs');
-                    if (imgui.Checkbox(string.format('Split By Duration##tTimersConfigBuffs_SplitByDuration', 'Enabled', 'Enabled'), { gSettings.Buff.SplitBuffsByDuration })) then
-                        gSettings.Buff.SplitBuffsByDuration = not gSettings.Buff.SplitBuffsByDuration;
+                    if (imgui.Checkbox('Split By Duration##tTimersConfigBuffs_SplitByDuration', { gSettings.Buff.SplitByDuration })) then
+                        gSettings.Buff.SplitByDuration = not gSettings.Buff.SplitByDuration;
                         settings.save();
                     end
                     imgui.ShowHelp('If enabled, the same buff will show up multiple times for each different duration.');
+                    imgui.TextColored(header, 'Debuffs');
+                    if (imgui.Checkbox('Split By Duration##tTimersConfigDebuffs_SplitByDuration', { gSettings.Debuff.SplitByDuration })) then
+                        gSettings.Debuff.SplitByDuration = not gSettings.Debuff.SplitByDuration;
+                        settings.save();
+                    end
+                    imgui.ShowHelp('If enabled, the same debuff will show up multiple times for each different duration.');
+                    if (imgui.Checkbox('Show Mob Index##tTimersConfigDebuffs_ShowMobIndex', { gSettings.Debuff.ShowMobIndex })) then
+                        gSettings.Debuff.ShowMobIndex = not gSettings.Debuff.ShowMobIndex;
+                        settings.save();
+                    end
+                    imgui.ShowHelp('If enabled, debuffs will include mob index in the target name.  Changes will not apply to existing timers.');
                     imgui.EndTabItem();
                 end
                 imgui.EndTabBar();

@@ -105,15 +105,15 @@ ashita.events.register('command', 'command_cb', function (e)
                 local duration;
                 if type(args[4]) == 'string' then
                     local multiplier = 1;
-                    local trail = string.lower(string.sub(args[4], -2));
+                    local trail = string.lower(string.sub(args[4], -1, -1));
                     if trail == 's' then
-                        args[4] = string.sub(args[4], 1, -2);
+                        args[4] = args[4]:sub(1, -2);
                     elseif (trail == 'm') then
                         multiplier = 60;
-                        args[4] = string.sub(args[4], 1, -2);
+                        args[4] = args[4]:sub(1, -2);
                     elseif (trail == 'h') then
-                        multiplier = 3600;                        
-                        args[4] = string.sub(args[4], 1, -2);
+                        multiplier = 3600;
+                        args[4] = args[4]:sub(1, -2);
                     end
                     local time = tonumber(args[4]);
                     if type(time) == 'number' then
