@@ -28,12 +28,10 @@ local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
 local config = {
     State = {
         IsOpen = { false },
-        SelectedPanel = 1,
-        ForceShowPanel = false,
     },
 };
 
-function config:GetRenderers(settings)
+function config:LoadRenderers()
     local renderers = T{};
     local paths = T{
         string.format('%sconfig/addons/%s/resources/renderers/', AshitaCore:GetInstallPath(), addon.name),
@@ -54,60 +52,39 @@ function config:GetRenderers(settings)
     end
     
     self.State.Renderers = renderers;
-    self.State.SelectedRenderer = 1;
-    for index,renderer in ipairs(renderers) do
-        if (settings.Renderer == renderer) then
-            self.State.SelectedRenderer = index;
-        end
-    end
-
-    self.State.SelectedSort = 1;
-    for index,sortType in ipairs(sortTypes) do
-        if (settings.SortType == sortType) then
-            self.State.SelectedSort = index;
-        end
-    end
 end
 
-function config:GetSkins(panel, force)
-    if (panel == self.State.ActivePanel) and (not force) then
-        return;
-    end
-
-    self.State.ActivePanel = panel;
-    if (type(panel.TimerRenderer.LoadSkin) ~= 'function') then
-        self.State.Skins = nil;
-        return;
-    end
-
+function config:LoadSkins()
     local skins = T{};
-    local rendererName = panel.Settings.Renderer;
-    local paths = T{
-        string.format('%sconfig/addons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
-        string.format('%saddons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, rendererName),
-    };
-
-    for _,path in ipairs(paths) do
-        if not (ashita.fs.exists(path)) then
-            ashita.fs.create_directory(path);
-        end
-        local contents = ashita.fs.get_directory(path, '.*\\.lua');
-        for _,file in pairs(contents) do
-            file = string.sub(file, 1, -5);
-            if not skins:contains(file) then
-                skins:append(file);
+    local panels = T{ 'Buff', 'Debuff', 'Recast', 'Custom' };
+    for _,panelName in ipairs(panels) do
+        local renderer = gSettings[panelName].Renderer;
+        if (skins[renderer] == nil) then
+            local newSkins = T{};
+            local paths = T{
+                string.format('%sconfig/addons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, renderer),
+                string.format('%saddons/%s/resources/skins/%s/', AshitaCore:GetInstallPath(), addon.name, renderer),
+            };        
+            for _,path in ipairs(paths) do
+                if not (ashita.fs.exists(path)) then
+                    ashita.fs.create_directory(path);
+                end
+                local contents = ashita.fs.get_directory(path, '.*\\.lua');
+                for _,file in pairs(contents) do
+                    file = string.sub(file, 1, -5);
+                    if not newSkins:contains(file) then
+                        newSkins:append(file);
+                    end
+                end
+            end
+            if (#newSkins > 0) then
+                skins[renderer] = newSkins;
             end
         end
     end
+
     
     self.State.Skins = skins;
-    self.State.SelectedSkin = 1;
-    local selectedSkin = panel.Settings.Skin[rendererName]
-    for index,skin in ipairs(skins) do
-        if (selectedSkin == skin) then
-            self.State.SelectedSkin = index;
-        end
-    end
 end
 
 function config:DrawPanelTab(panelName)
@@ -115,20 +92,22 @@ function config:DrawPanelTab(panelName)
         local panelSettings = gSettings[panelName];
         local panel = gPanels[panelName];
         local state = self.State;
-        self:GetSkins(panel, false);
+        local skins = state.Skins[panelSettings.Renderer];
 
-        if (self.State.Skins ~= nil) then
+        if (skins ~= nil) then
             imgui.TextColored(header, 'Panel Skin');
             imgui.ShowHelp('Allows you to choose a skin to modify your current renderer.  Not all renderers are required to provide skins.');
-            if (imgui.BeginCombo(string.format('##tTimersSkinSelection_%s', panelName), state.Skins[state.SelectedSkin], ImGuiComboFlags_None)) then
-                for index,skin in ipairs(state.Skins) do
-                    if (imgui.Selectable(skin, index == state.SelectedSkin)) then
-                        state.SelectedSkin = index;
-                        panelSettings.Skin[panelSettings.Renderer] = skin;                                    
-                        local skinPath = GetFilePath(string.format('skins/%s/%s.lua', panelSettings.Renderer, skin));
-                        skinPath = GetFilePath(skinPath);
-                        panel:UpdateSkin(LoadFile_s(skinPath));
-                        settings.save();
+            local activeSkin = panelSettings.Skin[panelSettings.Renderer];
+            if (imgui.BeginCombo(string.format('##tTimersSkinSelection_%s', panelName), activeSkin, ImGuiComboFlags_None)) then
+                for _,skin in ipairs(skins) do
+                    if (imgui.Selectable(skin, skin == activeSkin)) then
+                        if (skin ~= activeSkin) then
+                            panelSettings.Skin[panelSettings.Renderer] = skin;
+                            local skinPath = GetFilePath(string.format('skins/%s/%s.lua', panelSettings.Renderer, skin));
+                            skinPath = GetFilePath(skinPath);
+                            panel:UpdateSkin(LoadFile_s(skinPath));
+                            settings.save();
+                        end
                     end
                 end
                 imgui.EndCombo();
@@ -169,13 +148,15 @@ function config:DrawPanelTab(panelName)
         
         imgui.TextColored(header, 'Sort Type');
         imgui.ShowHelp('Determines the order timers will be displayed in.');
-        if (imgui.BeginCombo(string.format('##tTimersSortSelection_%s', panelName), sortTypes[state.SelectedSort], ImGuiComboFlags_None)) then
-            for index,sortType in ipairs(sortTypes) do
-                if (imgui.Selectable(sortType, index == state.SelectedSort)) then
-                    state.SelectedSort = index;
-                    panelSettings.SortType = sortType;
-                    panel:UpdateSettings(panelSettings);
-                    settings.save();
+        local activeSort = panelSettings.SortType;
+        if (imgui.BeginCombo(string.format('##tTimersSortSelection_%s', panelName), activeSort, ImGuiComboFlags_None)) then
+            for _,sortType in ipairs(sortTypes) do
+                if (imgui.Selectable(sortType, sortType == activeSort)) then
+                    if  (sortType ~= activeSort) then
+                        panelSettings.SortType = sortType;
+                        panel:UpdateSettings(panelSettings);
+                        settings.save();
+                    end
                 end
             end
             imgui.EndCombo();
@@ -279,17 +260,12 @@ function config:Render()
             imgui.End();
         end
     end
-
-    if (state.ForceShowPanel) then
-        return panels[state.SelectedPanel], state;
-    end
 end
 
 function config:Show()
     self.State.IsOpen[1] = true;
-    local selectedPanel = gPanels[panels[self.State.SelectedPanel]];
-    self:GetRenderers(selectedPanel.Settings);
-    self:GetSkins(selectedPanel);
+    self:LoadRenderers();
+    self:LoadSkins();
 end
 
 return config;
