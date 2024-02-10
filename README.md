@@ -13,10 +13,10 @@ Forces all timer panels visible with max allowed timers, and allows them to be d
 Ends reposition mode.
 
 **/tt custom [required: Label] [required: Duration]**<br>
-This creates a custom timer with the label and duration specified.  Duration can be specified in full or partial minutes, seconds, or hours by using suffixes s, m, or h.  Example usage:
-**/tt custom "PH Repop" 5.5m**
-**/tt custom "NM Window" 1h**
-**/tt custom "Reminder" 30s**
+This creates a custom timer with the label and duration specified.  Duration can be specified in full or partial minutes, seconds, or hours by using suffixes s, m, or h.  Example usage:<br>
+**/tt custom "PH Repop" 5.5m**<br>
+**/tt custom "NM Window" 1h**<br>
+**/tt custom "Reminder" 30s**<br>
 If no suffix is used, the timer will use the number as seconds.
 
 ## Other
