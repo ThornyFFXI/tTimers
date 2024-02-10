@@ -98,8 +98,6 @@ ashita.events.register('command', 'command_cb', function (e)
             end
         end
 
-
-
         if (args[2] == 'custom') then
             if (#args >= 4) then
                 local duration;
