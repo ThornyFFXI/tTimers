@@ -30,7 +30,6 @@ local baseY = 250;
 
 --Initialize Settings..
 gDefaultSettings = T{
-    read_only = true,
     Buff = T{
         Enabled = true,
         Position = T{ X=baseX, Y=baseY },
@@ -139,7 +138,7 @@ gPanels = T{
 --Register callback so character change updates panels..
 local function UpdateSettings(newSettings)
     gSettings = newSettings;
-    for name,entry in ipairs(gPanels) do
+    for name,entry in pairs(gPanels) do
         local panelSettings = gSettings[name];
         entry:UpdateSettings(panelSettings, true);
     end
