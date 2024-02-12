@@ -143,7 +143,7 @@ end
 
 local function get_ready_data(index)
     local modifier = ashita.memory.read_int16(AbilityRecastPointer + (index * 8) + 4);
-    local baseRecast = 3 * (90 + modifier);
+    local baseRecast = 90 + modifier;
     local chargeValue = baseRecast / 3;
     return baseRecast, chargeValue;
 end
