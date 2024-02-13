@@ -382,8 +382,6 @@ function tracker:UpdateSpells()
                     spell.Local.Delete = nil;
                     spell.Hide = nil;
                     spell.Creation = time;
-                end
-                if (duration > spell.TotalDuration) then
                     spell.TotalDuration = duration;
                 end
                 spell.Duration = duration;
