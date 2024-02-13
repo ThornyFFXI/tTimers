@@ -265,8 +265,6 @@ function tracker:UpdateAbilities()
                         ability.Local.Delete = nil;
                         ability.Hide = nil;
                         ability.Creation = time;
-                    end
-                    if (duration > ability.TotalDuration) then
                         ability.TotalDuration = duration;
                     end
                     ability.Duration = duration;
