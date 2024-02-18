@@ -7,7 +7,7 @@ Displays time remaining on buffs and debuffs you've cast, as well as the recast 
 Opens configuration menu.  This allows you to change themes, alter behavior, etc.
 
 **/tt reposition**<br>
-Forces all timer panels visible with max allowed timers, and allows them to be dragged around using the blue handles.
+Forces all timer panels visible with max allowed timers, and allows them to be dragged around using the handles.  Bottom justified panels will have a red handle, and top justified panels will have a blue handle.  There is an overlapping area in the default layout allowing you to drag both together by clicking the overlap.
 
 **/tt lock**<br>
 Ends reposition mode.
