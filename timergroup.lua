@@ -169,13 +169,13 @@ function TimerGroup:Render(sprite, timers)
 
     self.TimerRenderer:Begin();
     self.TimerRenderer:DrawTimers(sprite, { X = self.Settings.Position.X, Y = self.Settings.Position.Y }, renderDataContainer);
-    if (self.AllowDrag) then
-        self.TimerRenderer:DrawDragHandle(sprite, { X = self.Settings.Position.X, Y = self.Settings.Position.Y });
-    end
     self.TimerRenderer:End();
 end
 
 function TimerGroup:RenderTooltip(sprite)
+    if (self.AllowDrag) then
+        self.TimerRenderer:DrawDragHandle(sprite, { X = self.Settings.Position.X, Y = self.Settings.Position.Y });
+    end
     if (self.Settings.UseTooltips) then
         local renderData = self.TimerRenderer:TimerHitTest({X=self.Mouse.X, Y=self.Mouse.Y});
         if renderData then

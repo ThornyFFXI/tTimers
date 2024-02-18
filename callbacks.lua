@@ -58,9 +58,7 @@ ashita.events.register('d3d_present', 'd3d_present_cb', function ()
     end
     for i = #trackers,1,-1 do
         local panel = gPanels[trackers[i].Name];
-        if panel:RenderTooltip(sprite) then
-            break;
-        end
+        panel:RenderTooltip(sprite);
     end
     sprite:End();
 end);

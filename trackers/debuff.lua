@@ -33,7 +33,7 @@ local actionMessages = T{
     Expired = T{ 64, 204, 206, 350, 351 },
     Damage = T{ 2, 110, 252, 317 },
     Steps = T{ 519, 520, 521 },
-    Applied = T{ 127, 236, 237, 268, 271 },
+    Applied = T{ 127, 203, 236, 237, 268, 270, 271 },
 };
 local dotPriority = T{
     [232] = 6,

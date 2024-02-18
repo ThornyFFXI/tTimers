@@ -78,14 +78,12 @@ local settings = T{
     DragHandle = T{
         offset_x = 0,
         offset_y = 0,
-        width = 15,
-        height = 15,
+        width = 40,
+        height = 40,
         corner_rounding = 2,
-        fill_color = 0xFF0047B3,
+        fill_color = 0xC00047B3,
         outline_color = 0xFF000000,
         outline_width = 1,
-        gradient_style = 3,
-        gradient_color =  0x8080B3FF,
         visible = true;
     };
 };
