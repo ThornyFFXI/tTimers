@@ -22,7 +22,7 @@ SOFTWARE.
 
 addon.name      = 'tTimers';
 addon.author    = 'Thorny';
-addon.version   = '0.09';
+addon.version   = '0.10';
 addon.desc      = 'Displays time remaining on buffs and debuffs you\'ve cast, as well as the recast timers for your spells and abilities.';
 addon.link      = 'https://ashitaxi.com/';
 

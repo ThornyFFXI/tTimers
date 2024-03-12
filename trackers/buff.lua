@@ -277,7 +277,6 @@ end
 local function HandleAbilityComplete(packet)
     for _,target in ipairs(packet.Targets) do
         for _,action in ipairs(target.Actions) do
-            print(action.Message);
             if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
                 
