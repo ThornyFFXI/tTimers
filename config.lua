@@ -24,6 +24,7 @@ local header = { 1.0, 0.75, 0.55, 1.0 };
 local imgui = require('imgui');
 local panels = T { 'Buff', 'Debuff', 'Recast', 'Custom' };
 local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
+local trackModes = T { 'Self Cast Only', 'Party Only', 'All Players' };
 
 local config = {
     State = {
@@ -242,12 +243,38 @@ function config:Render()
                         settings.save();
                     end
                     imgui.ShowHelp('If enabled, the same buff will show up multiple times for each different duration.');
+                    local buffTrackMode = gSettings.Buff.TrackMode;
+                    if (imgui.BeginCombo(string.format('##tTimersBuffTrackMode'), buffTrackMode, ImGuiComboFlags_None)) then
+                        for _,trackMode in ipairs(trackModes) do
+                            if (imgui.Selectable(trackMode, trackMode == buffTrackMode)) then
+                                if (trackMode ~= buffTrackMode) then
+                                    gSettings.Buff.TrackMode = trackMode;
+                                    settings.save();
+                                end
+                            end
+                        end
+                        imgui.EndCombo();
+                    end
+                    imgui.ShowHelp('Determines which buffs will be recorded by the buff tracker.');
                     imgui.TextColored(header, 'Debuffs');
                     if (imgui.Checkbox('Split By Duration##tTimersConfigDebuffs_SplitByDuration', { gSettings.Debuff.SplitByDuration })) then
                         gSettings.Debuff.SplitByDuration = not gSettings.Debuff.SplitByDuration;
                         settings.save();
                     end
                     imgui.ShowHelp('If enabled, the same debuff will show up multiple times for each different duration.');
+                    local debuffTrackMode = gSettings.Debuff.TrackMode;
+                    if (imgui.BeginCombo(string.format('##tTimersDebuffTrackMode'), debuffTrackMode, ImGuiComboFlags_None)) then
+                        for _,trackMode in ipairs(trackModes) do
+                            if (imgui.Selectable(trackMode, trackMode == debuffTrackMode)) then
+                                if (trackMode ~= debuffTrackMode) then
+                                    gSettings.Debuff.TrackMode = trackMode;
+                                    settings.save();
+                                end
+                            end
+                        end
+                        imgui.EndCombo();
+                    end
+                    imgui.ShowHelp('Determines which debuffs will be recorded by the debuff tracker.');
                     if (imgui.Checkbox('Show Mob Index##tTimersConfigDebuffs_ShowMobIndex', { gSettings.Debuff.ShowMobIndex })) then
                         gSettings.Debuff.ShowMobIndex = not gSettings.Debuff.ShowMobIndex;
                         settings.save();

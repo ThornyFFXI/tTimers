@@ -49,6 +49,7 @@ gDefaultSettings = T{
         AbilityIconList = T{},
         WeaponSkillIconList = T{},
         SplitByDuration = true,
+        TrackMode = 'Self Cast Only',
         Blocked = T{
             --Add reasonable defaults..
         },
@@ -73,6 +74,7 @@ gDefaultSettings = T{
         CompletionDuration = 3,
         UseTooltips = true;
         SplitByDuration = true,
+        TrackMode = 'Self Cast Only',
         ShowMobIndex = true,
         Blocked = T{
             --Add reasonable defaults..

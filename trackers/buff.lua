@@ -33,7 +33,7 @@ local abilityTypes = T{ 6, 14, 15 };
 local actionMessages = T{
     Death = T{ 6, 20, 113, 406, 605, 646 },
     Expired = T{ 206 },
-    Applied = T{ 205, 230, 266, 280, 319, 420, 421, 424, 425 },
+    Applied = T{ 100, 205, 230, 266, 280, 319, 420, 421, 424, 425 },
 };
 local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
 local buffOverrides = T{
@@ -277,6 +277,7 @@ end
 local function HandleAbilityComplete(packet)
     for _,target in ipairs(packet.Targets) do
         for _,action in ipairs(target.Actions) do
+            print(action.Message);
             if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
                 
@@ -522,8 +523,26 @@ ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', functio
 
     if (e.id == 0x028) then
         local packet = actionPacket:parse(e);
+        local trackAction = (packet.UserId == durations:GetDataTracker():GetPlayerId());
+        if (trackAction == false) then
+            if (gSettings.Buff.TrackMode == 'All Players') then
+                local ent = AshitaCore:GetMemoryManager():GetEntity();
+                for i = 0x400,0x6FF do
+                    if (ent:GetServerId(i) == packet.UserId) then
+                        trackAction = true;
+                    end
+                end
+            elseif (gSettings.Buff.TrackMode == 'Party Only') then
+                local party = AshitaCore:GetMemoryManager():GetParty();
+                for i = 1,5 do
+                    if (party:GetMemberIsActive(i) == 1) and (party:GetMemberServerId(i) == packet.UserId) then
+                        trackAction = true;
+                    end
+                end
+            end
+        end
 
-        if (packet.UserId == durations:GetDataTracker():GetPlayerId()) then        
+        if (trackAction) then
             --Spell Completion
             if (packet.Type == 4) then
                 HandleSpellComplete(packet);

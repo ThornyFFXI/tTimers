@@ -438,9 +438,27 @@ ashita.events.register('packet_in', 'debuff_tracker_handleincomingpacket', funct
     end
 
     if (e.id == 0x028) then
-        local packet = actionPacket:parse(e);
+        local packet = actionPacket:parse(e);        
+        local trackAction = (packet.UserId == durations:GetDataTracker():GetPlayerId());
+        if (trackAction == false) then
+            if (gSettings.Debuff.TrackMode == 'All Players') then
+                local ent = AshitaCore:GetMemoryManager():GetEntity();
+                for i = 0x400,0x6FF do
+                    if (ent:GetServerId(i) == packet.UserId) then
+                        trackAction = true;
+                    end
+                end
+            elseif (gSettings.Debuff.TrackMode == 'Party Only') then
+                local party = AshitaCore:GetMemoryManager():GetParty();
+                for i = 1,5 do
+                    if (party:GetMemberIsActive(i) == 1) and (party:GetMemberServerId(i) == packet.UserId) then
+                        trackAction = true;
+                    end
+                end
+            end
+        end
 
-        if (packet.UserId == durations:GetDataTracker():GetPlayerId()) then        
+        if (trackAction) then
             --Spell Completion
             if (packet.Type == 4) then
                 HandleSpellComplete(packet);
