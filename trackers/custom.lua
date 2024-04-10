@@ -27,7 +27,25 @@ tracker.State = {
 };
 
 function tracker:AddTimer(timer)
-    self.State.ActiveTimers:append(timer);
+    if (not gSettings.Custom.UpdateCustom or not tracker:UpdateTimer(timer)) then
+        self.State.ActiveTimers:append(timer);
+    end
+end
+
+function tracker:UpdateTimer(timer)    
+    local found = false
+    for key, existingTimer in ipairs(self.State.ActiveTimers) do
+        if (not found and existingTimer.Label == timer.Label) then
+            existingTimer.Creation = timer.Creation
+            existingTimer.Local = timer.Local
+            existingTimer.Expiration = timer.Expiration
+            existingTimer.TotalDuration = timer.TotalDuration
+            found = true
+        elseif (existingTimer.Label == timer.Label) then
+            existingTimer.Local.Delete = true;
+        end        
+    end
+    return found
 end
 
 function tracker:Tick()

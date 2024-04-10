@@ -124,6 +124,7 @@ gDefaultSettings = T{
         CompletionDuration = 3,
         UseTooltips = true;
         Skin = T{},
+        UpdateCustom = false,
     },
 };
 gSettings = settings.load(gDefaultSettings:copy(true));
