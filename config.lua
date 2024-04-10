@@ -280,6 +280,11 @@ function config:Render()
                         settings.save();
                     end
                     imgui.ShowHelp('If enabled, debuffs will include mob index in the target name.  Changes will not apply to existing timers.');
+                    if (imgui.Checkbox('Update Custom##tTimersConfigCustom_UpdateCustom', {gSettings.Custom.UpdateCustom})) then
+                        gSettings.Custom.UpdateCustom = not gSettings.Custom.UpdateCustom;
+                        settings.save();
+                    end
+                    imgui.ShowHelp("When enabled, custom timers will overwrite existing custom timers of the same name, rather than be created again.");
                     imgui.EndTabItem();
                 end
                 imgui.EndTabBar();
