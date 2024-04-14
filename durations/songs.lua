@@ -253,6 +253,16 @@ local allSongsEquipment = {
     [23652] = 0.15, --Brioso Slippers +3
 };
 
+local function GetInstrumentId();
+    local equipment = dataTracker:GetEquippedSet();
+    for _,entry in ipairs(equipment) do
+        if (entry.Slot == 3) then
+            return entry.Id;
+        end
+    end
+    return 0;
+end
+
 local function SongSum()
     local total = 1.0;
     local equipment = dataTracker:GetEquippedSet();
@@ -272,7 +282,7 @@ local function SongSum()
 end
 
 local function AddConditionalInstruments(multiplier)
-    local instrument = dataTracker:GetEquippedSet()[3].Id;
+    local instrument = GetInstrumentId();
     if (instrument == 18341) then
         local zone = AshitaCore:GetMemoryManager():GetParty():GetMemberZone(0);
         for _,match in pairs(dynamisZones) do
@@ -347,7 +357,7 @@ end
 
 local function CalculateBalladDuration(targetId)
     local multiplier = SongSum() + dataTracker:EquipSum(balladEquipment);
-    if (dataTracker:GetEquippedSet()[3].Id == 17851) then
+    if (GetInstrumentId() == 17851) then
         local zone = AshitaCore:GetMemoryManager():GetParty():GetMemberZone(0);
         for _,match in pairs(assaultZones) do
             if zone == match then

@@ -275,6 +275,48 @@ local function UpdateEquippedSet()
     equipment.Changed = nil;
 end
 
+--[[
+    WIP: Needs a real signature, this cannot be used as is..
+local pLoginData;
+local function GetLoginNames()
+    if (pLoginData == nil) then
+        pLoginData = ashita.memory.find('FFXiMain.dll', 0, 'F1D20000????????????0000????????F2D200000100', 36, 0);
+        if (pLoginData == nil) then
+            return T{};
+        end
+    end
+
+    local count = ashita.memory.read_uint32(pLoginData);
+    local output = T{};
+    local sizeOfEntry = 140;
+    for i = 1,count do
+        local offset = ((i - 1) * sizeOfEntry) + pLoginData + 4;
+        local idBase = ashita.memory.read_uint16(offset + 4);
+        local idWorld = bit.lshift(ashita.memory.read_uint8(offset + 11), 16);
+        local id = idBase + idWorld;
+        local name = ashita.memory.read_string(offset + 12, 16):trimend('\x00');
+        local server = ashita.memory.read_string(offset + 28, 16):trimend('\x00');
+        if (idBase > 0) and (idWorld > 0) and (type(name) == 'string') and (string.len(name) > 2) then
+            output:append({Id = id, MenuIndex = i, Name=name, Server=server});
+        end
+    end
+    return output;
+end
+
+local function LookupServer()
+    local server = 'Unknown';
+    local loginNames = GetLoginNames();
+    for _,entry in ipairs(loginNames) do
+        if (entry.Name == player.Name) then
+            server = entry.Server;
+            if (entry.Id == player.Id) then
+                return server;
+            end
+        end
+    end
+    return server;
+end
+]]--
 
 local exports = {};
 
@@ -365,6 +407,12 @@ function exports:GetJobPointTotal(job)
         return total;
     end
 end
+
+--[[
+function exports:GetServer()
+    return LookupServer();
+end
+]]--
 
 function exports:IsNotoriousMonster(id)
     --Possible, but probably too tedious.

@@ -78,77 +78,77 @@ local function Initialize(tracker, buffer)
 
     --Metallic Body
     buffer[517] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);
+        return CalculateBlueMagicDuration(300, true, false), 37;
     end
 
      --Refueling
     buffer[530] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);
+        return CalculateBlueMagicDuration(300, true, false), 33;
     end
 
      --Memento Mori
     buffer[538] = function(targetId)
-        return CalculateBlueMagicDuration(60, true, false);
+        return CalculateBlueMagicDuration(60, true, false), 190;
     end
 
      --Cocoon
     buffer[547] = function(targetId)
-        return CalculateBlueMagicDuration(90, true, false);
+        return CalculateBlueMagicDuration(90, true, false), 93;
     end
 
      --Feather Barrier
     buffer[574] = function(targetId)
-        return CalculateBlueMagicDuration(30, true, false);
+        return CalculateBlueMagicDuration(30, true, false), 92;
     end
 
      --Reactor Cool
     buffer[613] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 35;
     end
 
      --Saline Coat
     buffer[614] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 191;
     end
 
      --Plasma Charge
     buffer[615] = function(targetId)
-        return CalculateBlueMagicDuration(600, true, false); --Seems to be random between 10 and 15 minutes?
+        return CalculateBlueMagicDuration(600, true, false), 38; --Seems to be random between 10 and 15 minutes?
     end
 
      --Diamondhide
     buffer[632] = function(targetId)
-        return CalculateBlueMagicDuration(900, false, false);
+        return CalculateBlueMagicDuration(900, false, false), 37;
     end
 
      --Warm-Up
     buffer[636] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 90;
     end
 
      --Amplification
     buffer[642] = function(targetId)
-        return CalculateBlueMagicDuration(90, true, false);
+        return CalculateBlueMagicDuration(90, true, false), 190;
     end
 
      --Zephyr Mantle
     buffer[647] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);
+        return CalculateBlueMagicDuration(300, true, false), 36;
     end
 
      --Triumphant Roar
     buffer[655] = function(targetId)
-        return CalculateBlueMagicDuration(60, true, false);
+        return CalculateBlueMagicDuration(60, true, false), 91;
     end
 
      --Plenilune Embrace
     buffer[658] = function(targetId)
-        return CalculateBlueMagicDuration(90, false, false);
+        return CalculateBlueMagicDuration(90, false, false), 91;
     end
 
      --Animating Wail
     buffer[661] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);
+        return CalculateBlueMagicDuration(300, true, false), 33;
     end
 
      --Battery Charge
@@ -157,68 +157,68 @@ local function Initialize(tracker, buffer)
         if dataTracker:GetPlayerId() == targetId then
             duration = duration + dataTracker:EquipSum(refreshReceived);
         end
-        return CalculateBlueMagicDuration(duration, true, false);
+        return CalculateBlueMagicDuration(duration, true, false), 43;
     end
 
      --Regeneration
     buffer[664] = function(targetId)
-        local duration = 180 + dataTracker:EquipSum(regenDuration);
-        return CalculateBlueMagicDuration(duration, true, false);        
+        local duration = 90 + dataTracker:EquipSum(regenDuration);
+        return CalculateBlueMagicDuration(duration, true, false), 42;
     end
 
      --Magic Barrier
     buffer[668] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);
+        return CalculateBlueMagicDuration(300, true, false), 152;
     end
 
      --Fantod
     buffer[674] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 45;
     end
 
      --Occultation
     buffer[679] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);        
+        return CalculateBlueMagicDuration(300, true, false), 36;
     end
 
      --Barrier Tusk
     buffer[685] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 116;
     end
 
      --O. Counterstance
     buffer[696] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);        
+        return CalculateBlueMagicDuration(180, true, false), 486;        
     end
 
      --Nat. Meditation
     buffer[700] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, false);
+        return CalculateBlueMagicDuration(180, true, false), 91;
     end
 
      --Erratic Flutter
     buffer[710] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, false);        
+        return CalculateBlueMagicDuration(300, true, false), 33;
     end
 
      --Harden Shell
     buffer[737] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, true);
+        return CalculateBlueMagicDuration(180, true, true), 93;
     end
 
      --Pyric Bulwark
     buffer[741] = function(targetId)
-        return CalculateBlueMagicDuration(300, true, true);
+        return CalculateBlueMagicDuration(300, true, true), 150;
     end
 
      --Carcharian Verve
     buffer[745] = function(targetId)
-        return CalculateBlueMagicDuration(60, true, true); --This also has a 15 minute aquaveil, assuming that is less important than the attack bonus..?
+        return CalculateBlueMagicDuration(60, true, true), 91; --This also has a 15 minute aquaveil, assuming that is less important than the attack bonus..?
     end
 
      --Mighty Guard
     buffer[750] = function(targetId)
-        return CalculateBlueMagicDuration(180, true, true);        
+        return CalculateBlueMagicDuration(180, true, true), 604;        
     end
 
     --[[DEBUFFS : Many are not clear on land or not from packet, others lack data.  Filled in the ones wiki knew.
