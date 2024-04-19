@@ -1,6 +1,9 @@
 # tTimers
 Displays time remaining on buffs and debuffs you've cast, as well as the recast timers for your spells and abilities.
 
+## Installation
+Download the release zip(**on the right sidebar, do not click code..download as zip**). Extract directly to your Ashita directory(the folder with ashita-cli.exe in it!). Everything should fall into place. Load the addon with **/addon load tTimers**.
+
 ## Commands
 
 **/tt**<br>
