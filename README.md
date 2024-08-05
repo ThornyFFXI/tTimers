@@ -22,5 +22,8 @@ This creates a custom timer with the label and duration specified.  Duration can
 **/tt custom "Reminder" 30s**<br>
 If no suffix is used, the timer will use the number as seconds.
 
+Enter a specific time in the future in this format HH:MM:SS. Example:
+**/tt custom "Timer" 17:13:20**<br>
+
 ## Other
 You can shift-click any timer to make it immediately disappear.  You can ctrl-click any timer to make it immediately disappear and block that ability/buff/debuff from generating new timers in the future.  A future update will allow unblocking through GUI, but currently unblocking must be done by unloading the addon, editing the config file, and reloading the addon.  So, try not to block anything you don't want to keep blocked.
