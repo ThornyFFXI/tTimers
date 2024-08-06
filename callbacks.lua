@@ -117,6 +117,30 @@ ashita.events.register('command', 'command_cb', function (e)
                     if type(time) == 'number' then
                         duration = time * multiplier;
                     end
+                    if (args[4]:len() == 8 or args[4]:len() == 7) and string.find(args[4], ":") then
+                        local datetime = args[4];
+                        local pattern = "(%d+):(%d+):(%d+)";
+                        local hour, min, sec = datetime:match(pattern);
+                        hour = tonumber(hour);
+                        min = tonumber(min);
+                        sec = tonumber(sec);
+
+                        if type(hour) == 'number' and type(min) == 'number' and type(sec) == 'number' then 
+                            local timestamp = os.time({
+                                year = os.date("%Y"),
+                                month = os.date("%m"),
+                                day = os.date("%d"),
+                                hour = hour,
+                                min = min,
+                                sec = sec
+                            });
+                            local now = os.time();
+                            local timeDiff = os.difftime(timestamp, now);
+                            if timeDiff > 0 then
+                                duration = timeDiff;
+                            end
+                        end
+                    end
                 end
                 if (type(duration) == 'number') then
                     local newCustomTimer = {
