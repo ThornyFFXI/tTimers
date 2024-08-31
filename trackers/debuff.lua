@@ -283,17 +283,20 @@ end
 local function HandleDiaBio(targetId, actionType, actionId, buffId, duration)
     local entry = buffsByTarget[targetId];
     if entry then
+        local now = os.clock();
         local value = dotPriority[actionId];
         for _,buffData in pairs(entry) do
             if (buffData.ActionType == 'Spell') then
                 local buffValue = dotPriority[buffData.ActionId];
                 if (buffValue ~= nil) then
-                    if (buffValue >= value) then
-                        return;
-                    else
-                        local target = buffData.Targets[targetId];
-                        if target then
-                            target.Delete = true;
+                    if buffData.Targets[targetId].Expiration > now then
+                        if (buffValue >= value) then
+                            return;
+                        else
+                            local target = buffData.Targets[targetId];
+                            if target then
+                                target.Delete = true;
+                            end
                         end
                     end
                 end
