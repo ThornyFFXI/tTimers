@@ -167,10 +167,19 @@ ashita.events.register('command', 'command_cb', function (e)
             return;
         end
 
+        if (args[2] == 'stop') then
+            if (#args > 2) then
+                customTracker:DeleteTimer(args[3]);
+            end
+            e.blocked = true;
+            return;
+        end
+
         print(chat.header('tTimers') .. chat.message('Command Descriptions:'));
         print(chat.header('tTimers') .. chat.color1(2, '/tt') .. chat.message(' - Opens configuration menu.'));
         print(chat.header('tTimers') .. chat.color1(2, '/tt reposition') .. chat.message(' - Starts reposition mode, which shows debug timers to fill all panels and provides draggable handles to move them.'));
         print(chat.header('tTimers') .. chat.color1(2, '/tt lock') .. chat.message(' - Ends repositioning mode and saves positions for the current character.'));
         print(chat.header('tTimers') .. chat.color1(2, '/tt custom [label] [duration]') .. chat.message(' - Adds a custom timer.  Duration can be specified in number of seconds or using s,m, or h suffixes with or without decimal places(30m, 1h, 10.5m, etc).'));
+        print(chat.header('tTimers') .. chat.color1(2, '/tt stop [label]') .. chat.message(' - Deletes a custom timer.'));
     end
 end);
