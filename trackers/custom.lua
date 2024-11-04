@@ -48,10 +48,29 @@ function tracker:UpdateTimer(timer)
     return found
 end
 
+function tracker:DeleteTimer(label)
+    for key, existingTimer in ipairs(self.State.ActiveTimers) do
+        if (existingTimer.Label == label) then
+            existingTimer.Local.Delete = true;
+        end        
+    end
+end
+
 function tracker:Tick()
     local time = os.clock();
     self.State.ActiveTimers = self.State.ActiveTimers:filteri(function(a) return (a.Local.Delete ~= true) end);
-    self.State.ActiveTimers:each(function(a) a.Duration = a.Expiration - time; end);
+    for key, existingTimer in ipairs(self.State.ActiveTimers) do
+        existingTimer.Duration = existingTimer.Expiration - time
+        if (existingTimer.Repeating == true and existingTimer.Duration <= 0) then
+            local newTimer = table.clone(existingTimer)
+            newTimer.Creation = time
+            newTimer.Local = T{}
+            newTimer.Expiration = time + existingTimer.TotalDuration
+            newTimer.Duration = existingTimer.TotalDuration
+            tracker:AddTimer(newTimer)
+            existingTimer.Repeating = false
+        end
+    end
     return self.State.ActiveTimers;
 end
 
