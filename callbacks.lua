@@ -151,7 +151,14 @@ ashita.events.register('command', 'command_cb', function (e)
                         TotalDuration = duration;
                     };
                     if (#args > 4) then
-                        newCustomTimer.Tooltip = args[5];
+                        if (args[5] == 'repeat') then
+                            newCustomTimer.Repeating = true;
+                            if (#args > 5) then
+                                newCustomTimer.Tooltip = args[6];
+                            end
+                        else
+                            newCustomTimer.Tooltip = args[5];
+                        end
                     end
                     customTracker:AddTimer(newCustomTimer);
                 end
