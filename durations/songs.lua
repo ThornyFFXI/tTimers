@@ -432,60 +432,55 @@ local function CalculateLullabyDuration(base)
     return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(lullabyEquipment), true);
 end
 
+local function CalculateRequiemDuration(base)
+    return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(requiemEquipment), false);
+end
+
 local function CalculateThrenodyDuration(base)
     return CalculateDebuffSongDuration(base, SongSum() + dataTracker:EquipSum(threnodyEquipment), false);
 end
 
 local function Initialize(tracker, buffer)
     dataTracker = tracker;
-    --[[UNKNOWN
+
+
+    --Requiem base duration is 48 + 16 * tier
+    --https://wiki.ffo.jp/html/4264.html
+
     --Foe Requiem
 	buffer[368] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16), 192;
 	end
-    ]]--
     
-    --[[UNKNOWN
 	--Foe Requiem II
 	buffer[369] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 2), 192;
 	end
-    ]]--
     
-    --[[UNKNOWN
 	--Foe Requiem III
 	buffer[370] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 3), 192;
 	end
-    ]]--
 
-    --[[UNKNOWN
 	--Foe Requiem IV
 	buffer[371] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 4), 192;
 	end
-    ]]--
 
-    --[[UNKNOWN
 	--Foe Requiem V
 	buffer[372] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 5), 192;
 	end
-    ]]--
 
-    --[[UNKNOWN
 	--Foe Requiem VI
 	buffer[373] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 6), 192;
 	end
-    ]]--
 
-    --[[UNKNOWN
 	--Foe Requiem VII
 	buffer[374] = function(targetId)
-		return 0;
+        return CalculateRequiemDuration(48 + 16 * 7), 192;
 	end
-    ]]--
 
 	--Horde Lullaby
 	buffer[376] = function(targetId)
