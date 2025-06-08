@@ -423,7 +423,10 @@ ashita.events.register('packet_in', 'recast_tracker_handleincomingpacket', funct
             if (ashita.bits.unpack_be(e.data_raw, 10, 2, 4) == 4) then
                 local actionId = ashita.bits.unpack_be(e.data_raw, 10, 6, 10);
                 local res = AshitaCore:GetResourceManager():GetSpellById(actionId);
-                local label = res and res.Name[1] or string.format('Unknown Spell [%u]', actionId);
+                local label = string.format('Unknown Spell [%u]', actionId);
+                if res then
+                    label = encoding:ShiftJIS_To_UTF8(res.Name[1], true);
+                end
                 state.SpellTimers[actionId] = {
                     Icon  = GetSpellIcon(actionId),
                     Label = label,

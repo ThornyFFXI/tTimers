@@ -1600,7 +1600,7 @@ local function Initialize(tracker, buffer)
         if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
             duration = duration + dataTracker:GetJobPointCount(22, 3);
         end
-        return duration;
+        return duration, 531;
     end
 
     --Swordplay
