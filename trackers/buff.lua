@@ -280,16 +280,17 @@ local function HandleAbilityComplete(packet)
             if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
                 
-                -- Convert double-up to pending roll..
-                if (packet.Id == 123) and (pendingRoll.Time + 48 > os.clock()) then
-                    duration = pendingRoll.Duration - (os.clock() - pendingRoll.Time);
-                    buffId = pendingRoll.Buff;
-                    packet.Id = pendingRoll.ActionId;
-                elseif (rolls:contains(packet.Id)) then
-                    pendingRoll.Time = os.clock();
-                    pendingRoll.Duration = duration;
-                    pendingRoll.Buff = buffId;
-                    pendingRoll.ActionId = packet.Id;
+                if (rolls:contains(packet.Id)) then
+                    if (packet.Id == pendingRoll.ActionId) and (pendingRoll.Time + 48 > os.clock()) then
+                        duration = pendingRoll.Duration - (os.clock() - pendingRoll.Time);
+                        buffId = pendingRoll.Buff;
+                        packet.Id = pendingRoll.ActionId;
+                    else
+                        pendingRoll.Time = os.clock();
+                        pendingRoll.Duration = duration;
+                        pendingRoll.Buff = buffId;
+                        pendingRoll.ActionId = packet.Id;
+                    end
                 end
 
                 if type(buffId) == 'table' then
