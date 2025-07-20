@@ -285,6 +285,11 @@ function config:Render()
                         settings.save();
                     end
                     imgui.ShowHelp("When enabled, custom timers will overwrite existing custom timers of the same name, rather than be created again.");
+                    if (imgui.Checkbox('Hide With Primitives##tTimersConfigCustom_HideWithPrimitives', {gSettings.HideWithPrimitives})) then
+                        gSettings.HideWithPrimitives = not gSettings.HideWithPrimitives;
+                        settings.save();
+                    end
+                    imgui.ShowHelp("When enabled, tTimers won't be drawn while Ashita's primitive manager is hidden.");
                     imgui.EndTabItem();
                 end
                 imgui.EndTabBar();
