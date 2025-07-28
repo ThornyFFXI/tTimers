@@ -538,6 +538,13 @@ ashita.events.register('packet_in', 'buff_tracker_handleincomingpacket', functio
                         trackAction = true;
                     end
                 end
+            elseif (gSettings.Buff.TrackMode == 'Alliance Only') then
+                local party = AshitaCore:GetMemoryManager():GetParty();
+                for i = 1,17 do
+                    if (party:GetMemberIsActive(i) == 1) and (party:GetMemberServerId(i) == packet.UserId) then
+                        trackAction = true;
+                    end
+                end
             end
         end
 

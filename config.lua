@@ -24,7 +24,7 @@ local header = { 1.0, 0.75, 0.55, 1.0 };
 local imgui = require('imgui');
 local panels = T { 'Buff', 'Debuff', 'Recast', 'Custom' };
 local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
-local trackModes = T { 'Self Cast Only', 'Party Only', 'All Players' };
+local trackModes = T { 'Self Cast Only', 'Party Only', 'Alliance Only', 'All Players' };
 
 local config = {
     State = {
