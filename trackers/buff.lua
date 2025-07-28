@@ -33,7 +33,7 @@ local abilityTypes = T{ 6, 14, 15 };
 local actionMessages = T{
     Death = T{ 6, 20, 113, 406, 605, 646 },
     Expired = T{ 206 },
-    Applied = T{ 100, 205, 230, 266, 280, 319, 420, 421, 424, 425 },
+    Applied = T{ 100, 115, 205, 230, 266, 280, 319, 420, 421, 424, 425, 667 },
 };
 local rolls = T{ 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 302, 303, 304, 305, 390, 391 };
 local buffOverrides = T{
@@ -280,16 +280,17 @@ local function HandleAbilityComplete(packet)
             if (actionMessages.Applied:contains(action.Message)) then
                 local duration, buffId = durations:GetAbilityDuration(packet.Id, target.Id);
                 
-                -- Convert double-up to pending roll..
-                if (packet.Id == 123) and (pendingRoll.Time + 48 > os.clock()) then
-                    duration = pendingRoll.Duration - (os.clock() - pendingRoll.Time);
-                    buffId = pendingRoll.Buff;
-                    packet.Id = pendingRoll.ActionId;
-                elseif (rolls:contains(packet.Id)) then
-                    pendingRoll.Time = os.clock();
-                    pendingRoll.Duration = duration;
-                    pendingRoll.Buff = buffId;
-                    pendingRoll.ActionId = packet.Id;
+                if (rolls:contains(packet.Id)) then
+                    if (packet.Id == pendingRoll.ActionId) and (pendingRoll.Time + 48 > os.clock()) then
+                        duration = pendingRoll.Duration - (os.clock() - pendingRoll.Time);
+                        buffId = pendingRoll.Buff;
+                        packet.Id = pendingRoll.ActionId;
+                    else
+                        pendingRoll.Time = os.clock();
+                        pendingRoll.Duration = duration;
+                        pendingRoll.Buff = buffId;
+                        pendingRoll.ActionId = packet.Id;
+                    end
                 end
 
                 if type(buffId) == 'table' then
@@ -682,7 +683,7 @@ local function CreateTimer(buffData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
     timerData.Icon = buffData.Icon;
     if (count > 1) then
-        timerData.Label = string.format('%s[%u]', buffData.Name, count);
+        timerData.Label = string.format('%s[%s+%u]', buffData.Name, shortest.Name, count-1);
     else
         timerData.Label = string.format('%s[%s]', buffData.Name, shortest.Name);
     end

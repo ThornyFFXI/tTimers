@@ -126,6 +126,7 @@ gDefaultSettings = T{
         Skin = T{},
         UpdateCustom = false,
     },
+    HideWithPrimitives = true,
 };
 gSettings = settings.load(gDefaultSettings:copy(true));
 

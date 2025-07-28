@@ -27,6 +27,8 @@ local rollDuration = {
     [11120] = 40, --Nvrch. Gants +2
     [27084] = 45, --Chasseur's Gants
     [27085] = 50, --Chasseur's Gants +1
+    [23235] = 55, --Chasseur's Gants +2
+    [23570] = 60, --Chasseur's Gants +3
     [26038] = 20, --Regal Necklace
     [26262] = 30, --Camulus's Mantle
     [21482] = 20, --Compensator
@@ -1600,7 +1602,7 @@ local function Initialize(tracker, buffer)
         if dataTracker:GetJobData().Main == 22 and dataTracker:GetJobData().MainLevel == 99 then
             duration = duration + dataTracker:GetJobPointCount(22, 3);
         end
-        return duration;
+        return duration, 531;
     end
 
     --Swordplay

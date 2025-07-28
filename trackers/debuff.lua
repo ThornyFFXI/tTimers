@@ -441,7 +441,7 @@ ashita.events.register('packet_in', 'debuff_tracker_handleincomingpacket', funct
     end
 
     if (e.id == 0x028) then
-        local packet = actionPacket:parse(e);        
+        local packet = actionPacket:parse(e);
         local trackAction = (packet.UserId == durations:GetDataTracker():GetPlayerId());
         if (trackAction == false) then
             if (gSettings.Debuff.TrackMode == 'All Players') then
@@ -591,7 +591,7 @@ local function CreateTimer(buffData)
     timerData.Duration = math.max(timerData.Expiration - os.clock(), 0);
     timerData.Icon = buffData.Icon;
     if (count > 1) then
-        timerData.Label = string.format('%s[%u]', buffData.Name, count);
+        timerData.Label = string.format('%s[%s+%u]', buffData.Name, shortest.Name, count-1);
     else
         timerData.Label = string.format('%s[%s]', buffData.Name, shortest.Name);
     end

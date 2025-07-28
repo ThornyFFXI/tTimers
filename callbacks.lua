@@ -42,7 +42,7 @@ end
 
 ashita.events.register('d3d_present', 'd3d_present_cb', function ()
     config:Render();
-    if (sprite == nil) then
+    if (sprite == nil) or ((gSettings.HideWithPrimitives == true) and (AshitaCore:GetPrimitiveManager():GetVisible() == false)) then
         return;
     end
 
