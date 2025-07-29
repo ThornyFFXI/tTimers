@@ -32,7 +32,7 @@ local actionMessages = T{
     Death = T{ 6, 20, 113, 406, 605, 646 },
     Expired = T{ 64, 204, 206, 350, 351 },
     Damage = T{ 2, 110, 252, 317 },
-    Steps = T{ 519, 520, 521 },
+    Steps = T{ 519, 520, 521, 591 },
     Applied = T{ 127, 203, 236, 237, 268, 270, 271 },
 };
 local dotPriority = T{
@@ -311,6 +311,7 @@ local stepBuffIds = T{
     [201] = 386,
     [202] = 391,
     [203] = 396,
+    [312] = 448,
 }
 local function HandleStep(targetId, actionId)
     local mods = 0;
@@ -325,10 +326,13 @@ local function HandleStep(targetId, actionId)
             if (buffData.ActionType == 'Ability') and (buffData.ActionId == actionId) then
                 local target = buffData.Targets[targetId];
                 if target then
+                    local duration = 60;
                     local remainingDuration = target.Expiration - os.clock();
-                    local duration = remainingDuration + 30 + mods;
-                    if (duration > (120 + mods)) then
-                        duration = 120 + mods; --Verify whether mods actually allow you more than 2min duration..
+                    if remainingDuration > 0 then
+                        duration = remainingDuration + 30 + mods;
+                        if (duration > (120 + mods)) then
+                            duration = 120 + mods; --Verify whether mods actually allow you more than 2min duration..
+                        end
                     end
                     target.Creation = os.clock();
                     target.Duration = duration;
