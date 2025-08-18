@@ -37,6 +37,15 @@ local saboteurModifiers = {
     [23558] = 0.14, --Leth. Ganth. +3
 };
 
+local rdmEmpyrean = T{ 11068, 11088, 11108, 11128, 11148, 23089, 23156, 23223, 23290, 23357, 23424, 23491, 23558, 23625, 23692, 26748, 26749, 26906, 26907, 27060, 27061, 27245, 27246, 27419, 27420 };
+do
+    local buffer = {};
+    for _,id in ipairs(rdmEmpyrean) do
+        buffer[id] = 1;
+    end
+    rdmEmpyrean = buffer;
+end
+
 local function ApplyEnfeeblingAdditions(duration, augments)
     local job = dataTracker:GetJobData();
     if job.Main ~= 5 then
@@ -89,12 +98,28 @@ local function ApplySaboteurMultipliers(duration, targetId)
     return duration * saboteur;
 end
 
+local composureValues = T{ [0]=1, [1]=1, [2]=1.1, [3]=1.2, [4]=1.35, [5]=1.5 };
+local function GetComposureMod()
+    local equipCount = dataTracker:EquipSum(rdmEmpyrean);
+    return composureValues[equipCount];
+end
+
+local function ApplyComposureModifiers(duration, targetId)
+	--Not verified whether durations over 1800 sec are truncated the same way as buffs.. can any debuff even reach 30 min?
+    if not dataTracker:GetBuffActive(419) or (duration >= 1800) then
+        return duration;
+    end
+	
+	return duration * GetComposureMod();
+end
+
 local function CalculateEnfeeblingDuration(base, targetId)
     local duration = base;
     local augments = dataTracker:ParseAugments();
     duration = ApplySaboteurMultipliers(duration, targetId);
     duration = ApplyEnfeeblingAdditions(duration, augments);
     duration = ApplyEnfeeblingMultipliers(duration, augments);
+	duration = ApplyComposureModifiers(duration);
     return duration;
 end
 

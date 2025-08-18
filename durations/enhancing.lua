@@ -28,18 +28,23 @@ local enhancingDuration = {
     [22099] = 0.20, --Musa
     [23134] = 0.10, --Viti. Tabard +2
     [23469] = 0.15, --Viti. Tabard +3
+    [23967] = 0.15, --Viti. Tabard +4
     [23149] = 0.08, --Peda. Gown +2
     [23484] = 0.12, --Peda. Gown +3
+    [23982] = 0.12, --Peda. Gown +4
     [27947] = 0.15, --Atrophy Gloves
     [27968] = 0.16, --Atrophy Gloves +1
     [23178] = 0.18, --Atrophy Gloves +2
     [23513] = 0.20, --Atrophy Gloves +3
+    [23989] = 0.20, --Atrophy Gloves +4
     [27194] = 0.10, --Futhark Trousers
     [27195] = 0.20, --Futhark Trousers +1
     [23285] = 0.25, --Futhark Trousers +2
     [23620] = 0.30, --Futhark Trousers +3
+    [24074] = 0.30, --Futhark Trousers +4
     [23310] = 0.05, --Theo. Duckbills +2
     [23645] = 0.10, --Theo. Duckbills +3
+    [24077] = 0.10, --Theo. Duckbills +4
     [11248] = 0.10, --Estq. Houseaux +1
     [11148] = 0.20, --Estq. Houseaux +2
     [27419] = 0.25, --Leth. Houseaux
@@ -58,7 +63,20 @@ local enhancingDuration = {
     [27892] = 0.10, --Shab. Cuirass +1
     [28034] = 0.05, --Dynasty Mitts
     [16204] = 0.10, --Estoqueur's Cape
+    [25444] = 0.07, --Lethargy Earring
+    [25445] = 0.08, --Lethargy Earring +1
+    [25446] = 0.09, --Lethargy Earring +2
+    [26041] = -0.5, --Sroda Necklace
 };
+
+local rdmEmpyrean = T{ 11068, 11088, 11108, 11128, 11148, 23089, 23156, 23223, 23290, 23357, 23424, 23491, 23558, 23625, 23692, 26748, 26749, 26906, 26907, 27060, 27061, 27245, 27246, 27419, 27420 };
+do
+    local buffer = {};
+    for _,id in ipairs(rdmEmpyrean) do
+        buffer[id] = 1;
+    end
+    rdmEmpyrean = buffer;
+end
 
 local perpetuanceDuration = {
     [11223] = 0.25,     --Svnt. Bracers +1
@@ -129,6 +147,12 @@ local function ApplyEnhancingMultipliers(duration, augments)
     return duration * enhancingGear * enhancingAugments;
 end
 
+local composureValues = T{ [0]=1, [1]=1, [2]=1.1, [3]=1.2, [4]=1.35, [5]=1.5 };
+local function GetComposureMod()
+    local equipCount = dataTracker:EquipSum(rdmEmpyrean);
+    return composureValues[equipCount];
+end
+
 local function ApplyComposureModifiers(duration, targetId)
     if not dataTracker:GetBuffActive(419) or (duration >= 1800) then
         return duration;
@@ -137,8 +161,7 @@ local function ApplyComposureModifiers(duration, targetId)
     if (targetId == dataTracker:GetPlayerId()) then
         return duration * 3;
     else
-        --return duration * GetComposureMod();
-        return duration;
+        return duration * GetComposureMod();
     end
 end
 

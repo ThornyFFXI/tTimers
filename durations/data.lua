@@ -339,6 +339,12 @@ function exports:GetBuffCount(id)
     return count;
 end
 
+--Used for items that only count in a specific slot
+local forceSlot = T{
+    [25444] = 12,
+    [25445] = 12,
+    [25446] = 12,
+};
 function exports:EquipSum(values)
     UpdateEquippedSet();
     local total = 0;
@@ -346,7 +352,9 @@ function exports:EquipSum(values)
         if (equipPiece ~= nil) and (player.Job.MainLevel >= equipPiece.Resource.Level) then
             local value = values[equipPiece.Id];
             if value ~= nil then
-                total = total + value;
+                if (forceSlot[equipPiece.Id] == nil) or (forceSlot[equipPiece.Id] == equipPiece.Slot) then
+                    total = total + value;
+                end
             end
         end
     end
