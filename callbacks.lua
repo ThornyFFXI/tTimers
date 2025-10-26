@@ -22,6 +22,7 @@ SOFTWARE.
 
 local d3d = require('d3d8');
 local ffi = require('ffi');
+local isOpen = false;
 local config        = require('config');
 local customTracker = require('trackers.custom');
 local dummyTracker  = require('trackers.dummy');
@@ -77,7 +78,12 @@ ashita.events.register('command', 'command_cb', function (e)
     e.blocked = true;
 
     if (#args == 1) then
-        config:Show();
+        isOpen = not isOpen;
+        if (isOpen) then
+            config:Show();
+        else
+            config:Hide();
+        end
         return;
     end
 

@@ -305,4 +305,8 @@ function config:Show()
     self:LoadSkins();
 end
 
+function config:Hide()
+    self.State.IsOpen[1] = false;
+end
+
 return config;
