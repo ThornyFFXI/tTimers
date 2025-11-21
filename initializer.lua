@@ -97,10 +97,7 @@ gDefaultSettings = T{
         AnimateCompletion = true,
         CompletionDuration = 3,
         UseTooltips = true;
-        BlockedAbilities = T{
-            --Defaults to empty..
-        },
-        BlockedSpells = T{
+        Blocked = T{
             --Defaults to empty..
         },
         Skin = T{

@@ -26,6 +26,7 @@ local panels = T { 'Buff', 'Debuff', 'Recast', 'Custom' };
 local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
 local trackModes = T { 'Self Cast Only', 'Party Only', 'Alliance Only', 'All Players' };
 
+local blockeditor = require('blockeditor');
 local config = {
     State = {
         IsOpen = { false },
@@ -223,19 +224,16 @@ function config:DrawPanelTab(panelName)
     end
 end
 
-
 function config:Render()
     local state = self.State;
 
     if (state.IsOpen[1]) then
         if (imgui.Begin(string.format('%s v%s Configuration', addon.name, addon.version), state.IsOpen, ImGuiWindowFlags_AlwaysAutoResize)) then
-            imgui.BeginGroup();
             if imgui.BeginTabBar('##tTimersConfigTabBar', ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) then
                 self:DrawPanelTab('Buff');
                 self:DrawPanelTab('Debuff');
                 self:DrawPanelTab('Recast');
                 self:DrawPanelTab('Custom');
-
                 if imgui.BeginTabItem(string.format('Behavior##tTimersConfigBehaviorTab')) then
                     imgui.TextColored(header, 'Buffs');
                     if (imgui.Checkbox('Split By Duration##tTimersConfigBuffs_SplitByDuration', { gSettings.Buff.SplitByDuration })) then
@@ -292,6 +290,7 @@ function config:Render()
                     imgui.ShowHelp("When enabled, tTimers won't be drawn while Ashita's primitive manager is hidden.");
                     imgui.EndTabItem();
                 end
+                blockeditor:DrawTabs();
                 imgui.EndTabBar();
             end
             imgui.End();
