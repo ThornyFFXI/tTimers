@@ -151,13 +151,31 @@ function TimerGroup:Render(sprite, timers)
     end
 
     if (self.Settings.SortType == 'Creation') then
-        table.sort(renderDataContainer, function(a, b) return (a.Creation < b.Creation) end);
+        table.sort(renderDataContainer, function(a, b)
+            if (a.Creation == b.Creation) then
+                return (a.Label < b.Label);
+            else
+                return (a.Creation < b.Creation);
+            end
+        end);
     elseif (self.Settings.SortType == 'Alphabetical') then
         table.sort(renderDataContainer, function(a, b) return (a.Label < b.Label) end);
     elseif (self.Settings.SortType == 'Nominal') then
-        table.sort(renderDataContainer, function(a, b) return (a.Duration < b.Duration) end);
+        table.sort(renderDataContainer, function(a, b)
+            if (a.Duration == b.Duration) then
+                return (a.Label < b.Label);
+            else
+                return (a.Duration < b.Duration);
+            end
+        end);
     elseif (self.Settings.SortType == 'Percentage') then
-        table.sort(renderDataContainer, function(a, b) return (a.Percent < b.Percent) end);
+        table.sort(renderDataContainer, function(a, b)
+            if (a.Percent == b.Percent) then
+                return (a.Label < b.Label);
+            else
+                return (a.Percent < b.Percent);
+            end
+        end);
     end
 
     local count = #renderDataContainer;
