@@ -30,6 +30,7 @@ local abilityBlocks = T{
 local overrides = {
     [0] = 'One-Hour Ability',
     [10] = 'Rune Enchantment',
+    [210] = 'Maneuvers',
     [254] = 'Secondary One-Hour',
 };
 local mainJob = 0;
