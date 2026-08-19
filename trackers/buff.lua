@@ -694,16 +694,32 @@ local function CreateTimer(buffData)
     activeTimers:append(timerData);
 end
 
+local function ShouldMerge(timer1, timer2)
+    if gSettings.Buff.SplitMode == "Don't Combine Timers" then
+        return false;
+    elseif gSettings.Buff.SplitMode == "Combine Timers (Seconds)" then
+        return (math.abs(timer2 - timer1) < gSettings.Buff.SplitValue);
+    elseif timer1 < timer2 then
+        return ((timer1 / timer2) > gSettings.Buff.SplitValue);
+    else
+        return ((timer2 / timer1) > gSettings.Buff.SplitValue);
+    end
+end
+
 local function CreateSplitTimers(buffData)
     local timers = T{};
     for id,target in pairs(buffData.Targets) do
         local targetTimer;
+
+        -- Look for a mergable timer..
         for _,timer in ipairs(timers) do
-            if (math.abs(timer.Expiration - target.Expiration) < 2) then
+            if (ShouldMerge(timer.Expiration, target.Expiration)) then
                 targetTimer = timer;
                 break;
             end
         end
+
+        -- Or create a new timer..
         if not targetTimer then
             targetTimer = {
                 BuffId = buffData.BuffId,
@@ -715,6 +731,7 @@ local function CreateSplitTimers(buffData)
             };
             timers:append(targetTimer);
         end
+
         targetTimer.Targets[id] = target;
     end
     for _,timer in ipairs(timers) do
@@ -723,15 +740,15 @@ local function CreateSplitTimers(buffData)
 end
 
 --Split out all buff timers by resource key, then sort them out into new timers.
-local function RebuildTimers(splitByDuration)
+local function RebuildTimers()
     activeTimers = T{};
 
     for key,buffData in pairs(buffsByAction) do
         if (gSettings.Buff.Blocked[key] == nil) then
-            if splitByDuration then
-                CreateSplitTimers(buffData);
-            else
+            if gSettings.Buff.SplitMode == "Combine All Timers" then
                 CreateTimer(buffData);
+            else
+                CreateSplitTimers(buffData);
             end
         end
     end
@@ -754,13 +771,15 @@ end
 
 local exports = {};
 
-local lastSetting;
+function exports:ForceRebuild()
+    rebuildTimers = true;
+end
+
 function exports:Tick()
     ClearDeletedTimers();
 
-    if (rebuildTimers) or (gSettings.Buff.SplitByDuration ~= lastSetting) then
-        lastSetting = gSettings.Buff.SplitByDuration;
-        RebuildTimers(lastSetting);
+    if rebuildTimers then
+        RebuildTimers();
         rebuildTimers = false;
     else
         for _,timerData in ipairs(activeTimers) do

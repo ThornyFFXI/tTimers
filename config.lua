@@ -25,6 +25,7 @@ local imgui = require('imgui');
 local panels = T { 'Buff', 'Debuff', 'Recast', 'Custom' };
 local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
 local trackModes = T { 'Self Cast Only', 'Party Only', 'Alliance Only', 'All Players' };
+local splitModes = T { "Combine All Timers", "Combine Timers (Duration %)", "Combine Timers (Seconds)", "Don't Combine Timers" };
 
 local blockeditor = require('blockeditor');
 local config = {
@@ -32,6 +33,14 @@ local config = {
         IsOpen = { false },
     },
 };
+
+local function RebuildBuffs()
+    for _,tracker in ipairs(gTrackers) do
+        if tracker.Name == "Buff" then
+            tracker.Tracker:ForceRebuild();
+        end
+    end
+end
 
 function config:LoadRenderers()
     local renderers = T{};
@@ -58,7 +67,6 @@ end
 
 function config:LoadSkins()
     local skins = T{};
-    local panels = T{ 'Buff', 'Debuff', 'Recast', 'Custom' };
     for _,panelName in ipairs(panels) do
         local renderer = gSettings[panelName].Renderer;
         if (skins[renderer] == nil) then
@@ -235,12 +243,45 @@ function config:Render()
                 self:DrawPanelTab('Recast');
                 self:DrawPanelTab('Custom');
                 if imgui.BeginTabItem(string.format('Behavior##tTimersConfigBehaviorTab')) then
-                    imgui.TextColored(header, 'Buffs');
-                    if (imgui.Checkbox('Split By Duration##tTimersConfigBuffs_SplitByDuration', { gSettings.Buff.SplitByDuration })) then
-                        gSettings.Buff.SplitByDuration = not gSettings.Buff.SplitByDuration;
-                        settings.save();
+                    imgui.TextColored(header, 'Buff Splitting');
+                    local buffSplitMode = gSettings.Buff.SplitMode;
+                    if (imgui.BeginCombo(string.format('##tTimersBuffSplitMode'), buffSplitMode, ImGuiComboFlags_None)) then
+                        for _,splitMode in ipairs(splitModes) do
+                            if (imgui.Selectable(splitMode, splitMode == buffSplitMode)) then
+                                if (splitMode ~= buffSplitMode) then
+                                    gSettings.Buff.SplitMode = splitMode;
+                                    if splitMode == "Combine Timers (Duration %)" then
+                                        gSettings.Buff.SplitValue = 0.9;
+                                    elseif splitMode == "Combine Timers (Seconds)" then
+                                        gSettings.Buff.SplitValue = 2;
+                                    else
+                                        gSettings.Buff.SplitValue = nil;
+                                    end
+                                    RebuildBuffs();
+                                    settings.save();
+                                end
+                            end
+                        end
+                        imgui.EndCombo();
                     end
-                    imgui.ShowHelp('If enabled, the same buff will show up multiple times for each different duration.');
+                    imgui.ShowHelp('Determines when buffs with similar durations will be combined.');
+                    if gSettings.Buff.SplitMode == "Combine Timers (Duration %)" then
+                        local buffer = { gSettings.Buff.SplitValue };                        
+                        if (imgui.SliderFloat(string.format('##tTimersBuffSplitPercent'), buffer, 0.1, 1.0, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
+                            gSettings.Buff.SplitValue = buffer[1];
+                            RebuildBuffs();
+                            settings.save();
+                        end
+                    elseif gSettings.Buff.SplitMode == "Combine Timers (Seconds)" then
+                        local buffer = { gSettings.Buff.SplitValue };                        
+                        if (imgui.SliderInt(string.format('##tTimersBuffSplitSeconds'), buffer, 1, 90, '%u', ImGuiSliderFlags_AlwaysClamp)) then
+                            gSettings.Buff.SplitValue = buffer[1];
+                            RebuildBuffs();
+                            settings.save();
+                        end
+                    end
+
+                    imgui.TextColored(header, 'Buff Tracking');
                     local buffTrackMode = gSettings.Buff.TrackMode;
                     if (imgui.BeginCombo(string.format('##tTimersBuffTrackMode'), buffTrackMode, ImGuiComboFlags_None)) then
                         for _,trackMode in ipairs(trackModes) do

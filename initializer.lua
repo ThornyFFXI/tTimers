@@ -48,7 +48,8 @@ gDefaultSettings = T{
         SpellIconList = T{},
         AbilityIconList = T{},
         WeaponSkillIconList = T{},
-        SplitByDuration = true,
+        SplitMode = "Combine Timers (Seconds)";
+        SplitValue = 2;
         TrackMode = 'Self Cast Only',
         Blocked = T{
             --Add reasonable defaults..
@@ -126,6 +127,22 @@ gDefaultSettings = T{
     HideWithPrimitives = true,
 };
 gSettings = settings.load(gDefaultSettings:copy(true));
+
+-- Update settings to match current version..
+do
+    -- Convert Split By Duration from boolean to state + value
+    if gSettings.SplitByDuration ~= nil then
+        if gSettings.SplitByDuration then
+            gSettings.SplitMode = "Combine Timers (Seconds)"
+            gSettings.SplitValue = 2;
+        else
+            gSettings.SplitMode = "Don't Combine Timers";
+            gSettings.SplitValue = 2;
+        end
+        gSettings.SplitByDuration = nil;
+    end
+    
+end
 
 --Initialize panels..
 local group          = require('timergroup');
