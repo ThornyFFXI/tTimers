@@ -694,16 +694,39 @@ local function CreateTimer(buffData)
     activeTimers:append(timerData);
 end
 
+local function GetSplitTolerance(targetExpiration)
+    local remaining = targetExpiration - os.clock()
+
+    -- 90% of duration
+    local tolerance = remaining * 0.90
+    tolerance = math.max(60, math.min(180, tolerance))
+
+    return tolerance
+end
+
 local function CreateSplitTimers(buffData)
     local timers = T{};
     for id,target in pairs(buffData.Targets) do
         local targetTimer;
+        local mergeSetting = true -- TODO: Real Setting
+
         for _,timer in ipairs(timers) do
-            if (math.abs(timer.Expiration - target.Expiration) < 2) then
-                targetTimer = timer;
-                break;
+            if mergeSetting then
+                local tolerance = GetSplitTolerance(target.Expiration)
+                
+                if (math.abs(timer.Expiration - target.Expiration) < tolerance) then
+                    for _,timer in ipairs(timers) do
+                        targetTimer = timer;
+                    end
+                end
+            else
+                if (math.abs(timer.Expiration - target.Expiration) < 2) then
+                    targetTimer = timer;
+                    break;
+                end
             end
         end
+
         if not targetTimer then
             targetTimer = {
                 BuffId = buffData.BuffId,
