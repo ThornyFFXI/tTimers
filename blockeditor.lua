@@ -82,9 +82,15 @@ local function stringToLabel(str)
 end
 
 function editor:DrawTabs()
-    self:DrawTab("Blocked Buffs", gSettings.Buff.Blocked, stringToLabel);
-    self:DrawTab("Blocked Debuffs", gSettings.Debuff.Blocked, stringToLabel);
-    self:DrawTab("Blocked Recasts", gSettings.Recast.Blocked, stringToLabel);
+    if imgui.BeginTabItem(string.format('Blocked##tTimersBlockedTab', panelName, panelName)) then
+        if imgui.BeginTabBar('##tTimersBlockedTabBar', ImGuiTabBarFlags_NoCloseWithMiddleMouseButton) then
+            self:DrawTab("Blocked Buffs", gSettings.Buff.Blocked, stringToLabel);
+            self:DrawTab("Blocked Debuffs", gSettings.Debuff.Blocked, stringToLabel);
+            self:DrawTab("Blocked Recasts", gSettings.Recast.Blocked, stringToLabel);
+            imgui.EndTabBar();
+        end
+        imgui.EndTabItem();
+    end
 end
 
 return editor;
