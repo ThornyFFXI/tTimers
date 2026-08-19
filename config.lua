@@ -25,7 +25,7 @@ local imgui = require('imgui');
 local panels = T { 'Buff', 'Debuff', 'Recast', 'Custom' };
 local sortTypes = T { 'Nominal', 'Percentage', 'Alphabetical', 'Creation' };
 local trackModes = T { 'Self Cast Only', 'Party Only', 'Alliance Only', 'All Players' };
-local splitModes = T { "Combine Timers (Duration %)", "Combine Timers (Seconds)", "Don't Combine Timers" };
+local splitModes = T { "Combine All Timers", "Combine Timers (Duration %)", "Combine Timers (Seconds)", "Don't Combine Timers" };
 
 local blockeditor = require('blockeditor');
 local config = {
@@ -33,6 +33,14 @@ local config = {
         IsOpen = { false },
     },
 };
+
+local function RebuildBuffs()
+    for _,tracker in ipairs(gTrackers) do
+        if tracker.Name == "Buff" then
+            tracker.Tracker:ForceRebuild();
+        end
+    end
+end
 
 function config:LoadRenderers()
     local renderers = T{};
@@ -249,6 +257,7 @@ function config:Render()
                                     else
                                         gSettings.Buff.SplitValue = nil;
                                     end
+                                    RebuildBuffs();
                                     settings.save();
                                 end
                             end
@@ -260,12 +269,14 @@ function config:Render()
                         local buffer = { gSettings.Buff.SplitValue };                        
                         if (imgui.SliderFloat(string.format('##tTimersBuffSplitPercent'), buffer, 0.1, 1.0, '%.2f', ImGuiSliderFlags_AlwaysClamp)) then
                             gSettings.Buff.SplitValue = buffer[1];
+                            RebuildBuffs();
                             settings.save();
                         end
                     elseif gSettings.Buff.SplitMode == "Combine Timers (Seconds)" then
                         local buffer = { gSettings.Buff.SplitValue };                        
                         if (imgui.SliderInt(string.format('##tTimersBuffSplitSeconds'), buffer, 1, 90, '%u', ImGuiSliderFlags_AlwaysClamp)) then
                             gSettings.Buff.SplitValue = buffer[1];
+                            RebuildBuffs();
                             settings.save();
                         end
                     end
